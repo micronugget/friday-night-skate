@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Contains skating_video_uploader.module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\file\FileInterface;
+use Drupal\media\MediaInterface;
+
+/**
+ * Implements hook_help().
+ */
+function skating_video_uploader_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.skating_video_uploader':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Skating Video Uploader module collects GPS and timecode metadata from videos and uploads them to YouTube with user consent.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function skating_video_uploader_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Add consent checkbox to videojs_mediablock forms.
+  if (strpos($form_id, 'block_content_videojs_mediablock_') === 0) {
+    $form['youtube_consent'] = [
+      '#type' => 'checkbox',
+      '#title' => t('I consent to upload this video to YouTube and collect GPS and timecode metadata'),
+      '#description' => t('By checking this box, you agree to upload this video to YouTube and allow the collection of GPS and timecode metadata.'),
+      '#weight' => 10,
+      '#default_value' => FALSE,
+    ];
+
+    // Add a submit handler to process the upload and metadata collection.
+    $form['actions']['submit']['#submit'][] = 'skating_video_uploader_form_submit';
+  }
+}
+
+/**
+ * Custom submit handler for videojs_mediablock forms.
+ */
+function skating_video_uploader_form_submit($form, FormStateInterface $form_state) {
+  // Check if consent was given.
+  if ($form_state->getValue('youtube_consent')) {
+    // Get the entity from the form state.
+    $entity = $form_state->getFormObject()->getEntity();
+
+    // Process the entity for metadata extraction and YouTube upload.
+    \Drupal::service('skating_video_uploader.processor')->processEntity($entity);
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function skating_video_uploader_entity_presave(EntityInterface $entity) {
+  // Check if this is a media entity of type videojs_video.
+  if ($entity instanceof MediaInterface && $entity->bundle() == 'videojs_video') {
+    // Extract metadata from the video file.
+    \Drupal::service('skating_video_uploader.metadata_extractor')->extractMetadata($entity);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function skating_video_uploader_theme() {
+  return [
+    'skating_video_uploader_metadata' => [
+      'variables' => [
+        'metadata' => NULL,
+      ],
+      'template' => 'skating-video-uploader-metadata',
+    ],
+  ];
+}
