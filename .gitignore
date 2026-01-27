@@ -35,3 +35,4 @@ web/sites/default/services.yml
 web/sites/default/private/.htaccess
 web/sites/default/private/tmp/
 backup*
+web/modules/custom/videojs_media/node_modules

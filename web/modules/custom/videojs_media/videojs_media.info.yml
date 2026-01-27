@@ -1,0 +1,15 @@
+name: 'VideoJS Media'
+type: module
+description: 'Content entity-based VideoJS media player with support for local, remote, and YouTube video/audio. Uses view modes for flexible display.'
+core_version_requirement: ^10.3 | ^11
+package: 'VideoJS'
+dependencies:
+  - drupal:config
+  - drupal:field
+  - drupal:file
+  - drupal:file_upload_secure_validator
+  - drupal:image
+  - drupal:options
+  - drupal:serialization
+  - drupal:taxonomy
+  - drupal:text
