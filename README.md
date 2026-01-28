@@ -4,12 +4,36 @@ A Drupal CMS 2 (Drupal 11) platform for the Friday Night Skate community to uplo
 
 ## 🎨 Featured: Archive Feature
 
-This repository includes a comprehensive implementation plan for the **Friday Night Skate Archive** - a community-driven media archive system. See [.github/ISSUES.md](.github/ISSUES.md) for the complete GitHub Issues breakdown.
+This repository includes a comprehensive implementation plan for the **Friday Night Skate Archive** - a community-driven media archive system.
 
-### Quick Links
-- 📋 [GitHub Issues Plan](.github/ISSUES.md) - Copy these 16 issues into your GitHub repository
+### 🚀 Create GitHub Issues Automatically
+
+We've included a Python script that automatically creates all 16 GitHub Issues (1 Epic + 15 Sub-Issues) from the documentation:
+
+```bash
+# 1. Authenticate with GitHub (one-time setup)
+gh auth login
+
+# 2. Test what will be created (dry run)
+python3 scripts/create_github_issues.py --dry-run
+
+# 3. Create all issues
+python3 scripts/create_github_issues.py
+```
+
+This will create:
+- ✅ 1 Epic Issue: Friday Night Skate Archive Feature
+- ✅ 15 Sub-Issues with proper labels and linking
+- ✅ All technical requirements and validation checklists
+- ✅ Proper dependencies and handoff information
+
+**See:** [scripts/README.md](scripts/README.md) for detailed instructions.
+
+### 📋 Documentation Links
+- 📋 [GitHub Issues Plan](.github/ISSUES.md) - Source document for all issues
 - 📊 [Issues Summary](.github/ISSUES_SUMMARY.md) - Executive overview and dependency graph
 - 🎨 [Frontend Design Skill](.github/agents/skills/frontend-design/SKILL.md) - Van Gogh's "Starry Night" inspiration
+- 🛠️ [Scripts README](scripts/README.md) - How to use the issue creation script
 
 ---
 
