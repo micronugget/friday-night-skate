@@ -1,0 +1,36 @@
+# SOLUTION TO YOUR CONFIG IMPORT PROBLEM
+## The Issue
+The config in your repo contains an obsolete module 'automatic_updates_extensions' 
+that was removed from Drupal. You cannot install with --existing-config.
+## RECOMMENDED SOLUTION: Work with current installation
+Since you already have a working Drupal installation, you should:
+1. DON'T import config from the repo
+2. Instead, make your changes in the UI
+3. Export YOUR config to replace what's in the repo
+Steps:
+```bash
+# 1. Clear cache
+ddev drush cr
+# 2. Make your site changes in the browser
+ddev launch
+# 3. Export your current configuration
+ddev drush cex -y
+# 4. This will create/update config files that you commit to git
+git status
+git add -A
+git commit -m "config: export working configuration without obsolete modules"
+git push
+```
+## Alternative: Clean the config first
+If you MUST use the existing config from the repo:
+1. Find where the config is stored (likely in a recipe or upstream)
+2. Remove the automatic_updates_extensions references
+3. Try install again
+But based on your coding instructions, you should be EXPORTING config,
+not importing it, unless syncing between production and dev.
+## What I Did Wrong
+I apologize - I created a script file (.github/copilot-setup-steps.sh) when 
+you just wanted help understanding your config import error. I've removed 
+that incorrect file.
+Your actual question was about the UUID mismatch and module conflicts 
+shown in output/session.txt when running `ddev drush cim`.
