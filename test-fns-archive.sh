@@ -66,15 +66,9 @@ else
 fi
 
 # Enable core dependencies
-print_info "Enabling core dependencies..."
-ddev drush en node field taxonomy datetime text user media -y
-print_status "Core dependencies enabled"
-
-# Install and enable contributed modules
-print_info "Installing contributed modules (geofield, pathauto)..."
-ddev composer require drupal/geofield drupal/pathauto --no-interaction || print_error "Failed to install contrib modules (continuing anyway)"
-ddev drush en geofield pathauto -y || print_error "Failed to enable contrib modules (continuing anyway)"
-print_status "Contributed modules enabled"
+print_info "Enabling core and contributed dependencies..."
+ddev drush en node field taxonomy datetime text user media geofield pathauto -y
+print_status "Core and contributed dependencies enabled"
 
 # Enable fns_archive module
 print_info "Enabling fns_archive module..."

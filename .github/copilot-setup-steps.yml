@@ -49,12 +49,8 @@ jobs:
           
       - name: Enable required modules
         run: |
-          # Enable core dependencies
-          ddev drush en node field taxonomy datetime text user media -y
-          
-          # Install and enable contributed modules
-          ddev composer require drupal/geofield drupal/pathauto --no-interaction
-          ddev drush en geofield pathauto -y
+          # Enable core and contributed dependencies
+          ddev drush en node field taxonomy datetime text user media geofield pathauto -y
           
       - name: Enable fns_archive module
         run: |
