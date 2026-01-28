@@ -28,11 +28,58 @@ import argparse
 class GitHubIssueCreator:
     """Parse ISSUES.md and create GitHub Issues"""
     
+    # Label definitions with colors
+    LABELS = {
+        'epic': 'purple',
+        'enhancement': '84b6eb',
+        'archive': '0e8a16',
+        'backend': 'd73a4a',
+        'frontend': '0075ca',
+        'architecture': 'fbca04',
+        'content-type': 'c2e0c6',
+        'media': 'bfd4f2',
+        'critical': 'b60205',
+        'metadata': 'c5def5',
+        'workflow': 'bfdadc',
+        'moderation': 'e99695',
+        'security': 'ee0701',
+        'ux': 'd876e3',
+        'forms': 'c2e0c6',
+        'testing': '0e8a16',
+        'migration': 'fbca04',
+        'views': '0075ca',
+        'theme': 'd876e3',
+        'masonry': 'bfd4f2',
+        'mobile': '1d76db',
+        'modal': '5319e7',
+        'performance': 'fbca04',
+        'images': 'bfdadc',
+        'design': 'd876e3',
+        'radix': 'e99695',
+        'privacy': 'ee0701',
+        'legal': 'b60205',
+        'gdpr': 'd73a4a',
+        'users': '0075ca',
+        'authentication': '1d76db',
+        'optimization': 'fbca04',
+        'caching': 'c2e0c6',
+        'audit': 'ee0701',
+        'validation': '0e8a16',
+        'documentation': '0075ca',
+        'training': '5319e7',
+        'guides': '1d76db',
+        'devops': 'd73a4a',
+        'deployment': 'fbca04',
+        'production': 'b60205',
+        'openlitespeed': 'c2e0c6'
+    }
+    
     def __init__(self, repo: str = "micronugget/friday-night-skate", dry_run: bool = False):
         self.repo = repo
         self.dry_run = dry_run
         self.epic_number = None
         self.issue_numbers = {}  # Map issue IDs to created issue numbers
+        self.existing_labels = None  # Cache for existing labels
         
     def check_gh_auth(self) -> bool:
         """Check if gh CLI is authenticated"""
@@ -47,6 +94,78 @@ class GitHubIssueCreator:
             print("❌ Error: GitHub CLI (gh) not found. Please install it first.")
             print("   See: https://cli.github.com/")
             return False
+    
+    def get_existing_labels(self) -> List[str]:
+        """Get list of existing labels in the repository"""
+        if self.existing_labels is not None:
+            return self.existing_labels
+        
+        try:
+            result = subprocess.run(
+                ["gh", "label", "list", "--repo", self.repo, "--json", "name"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            labels_data = json.loads(result.stdout)
+            self.existing_labels = [label['name'] for label in labels_data]
+            return self.existing_labels
+        except subprocess.CalledProcessError:
+            # If command fails, assume no labels exist
+            self.existing_labels = []
+            return self.existing_labels
+        except json.JSONDecodeError:
+            self.existing_labels = []
+            return self.existing_labels
+    
+    def create_label(self, name: str, color: str) -> bool:
+        """Create a label in the repository"""
+        if self.dry_run:
+            print(f"   Would create label: {name} (#{color})")
+            return True
+        
+        try:
+            subprocess.run(
+                ["gh", "label", "create", name, 
+                 "--color", color, 
+                 "--repo", self.repo],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            print(f"   ✅ Created label: {name}")
+            return True
+        except subprocess.CalledProcessError as e:
+            # Label might already exist, which is fine
+            if "already exists" in e.stderr:
+                return True
+            print(f"   ⚠️  Warning: Could not create label '{name}': {e.stderr.strip()}")
+            return False
+    
+    def ensure_labels_exist(self, labels: List[str]) -> bool:
+        """Ensure all required labels exist in the repository"""
+        existing = self.get_existing_labels()
+        missing_labels = [label for label in labels if label not in existing]
+        
+        if not missing_labels:
+            return True
+        
+        if self.dry_run:
+            print(f"\n🏷️  Would create {len(missing_labels)} missing labels...")
+        else:
+            print(f"\n🏷️  Creating {len(missing_labels)} missing labels...")
+        
+        success = True
+        for label in missing_labels:
+            color = self.LABELS.get(label, 'ededed')  # Default gray color
+            if not self.create_label(label, color):
+                success = False
+        
+        # Update cache
+        if not self.dry_run:
+            self.existing_labels = None  # Reset cache to fetch updated list
+        
+        return success
     
     def parse_issues_file(self, filepath: str = ".github/ISSUES.md") -> Dict:
         """Parse ISSUES.md file and extract issue data"""
@@ -230,6 +349,18 @@ class GitHubIssueCreator:
         except Exception as e:
             print(f"❌ Error parsing ISSUES.md: {e}")
             return False
+        
+        # Collect all unique labels from all issues
+        all_labels = set()
+        if issues_data['epic']:
+            all_labels.update(issues_data['epic']['labels'])
+        for sub_issue in issues_data['sub_issues']:
+            all_labels.update(sub_issue['labels'])
+        
+        # Ensure all labels exist before creating issues
+        if all_labels:
+            if not self.ensure_labels_exist(list(all_labels)):
+                print("⚠️  Warning: Some labels could not be created")
         
         # Create Epic Issue first
         if issues_data['epic']:

@@ -127,6 +127,12 @@ Repository: micronugget/friday-night-skate
 
 📖 Parsing .github/ISSUES.md...
 
+🏷️  Creating 42 missing labels...
+   ✅ Created label: epic
+   ✅ Created label: backend
+   ✅ Created label: frontend
+   ... (labels created automatically)
+
 📋 Creating Epic Issue...
 ✅ Created issue #1: Friday Night Skate Archive Feature
 
@@ -158,11 +164,12 @@ Each issue includes:
   - Dependencies
   - Handoff information
 - **Labels**: e.g., `backend`, `frontend`, `critical`, `security`
+  - **Automatically created** if they don't exist in the repository
 - **Linking**: Sub-Issues linked to Epic via comment
 
-### Labels Used
+### Labels Automatically Created
 
-The script will apply these labels based on issue content:
+The script automatically creates any missing labels before creating issues. Labels include:
 - `epic` - Epic Issue
 - `backend` - Backend development
 - `frontend` - Frontend development
@@ -172,6 +179,9 @@ The script will apply these labels based on issue content:
 - `performance` - Performance optimization
 - `documentation` - Documentation
 - `devops` - DevOps/deployment
+- Plus many more (see script for full list)
+
+**Note:** Labels are created with predefined colors for consistency across the project.
 
 ### Troubleshooting
 
