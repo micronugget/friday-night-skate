@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\skating_video_uploader\Service;
 
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -37,6 +38,13 @@ class MetadataExtractor {
   protected $fileSystem;
 
   /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * Constructs a new MetadataExtractor object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -45,15 +53,19 @@ class MetadataExtractor {
    *   The logger factory.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   The file system service.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $logger_factory,
-    FileSystemInterface $file_system
+    FileSystemInterface $file_system,
+    Connection $database
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->loggerFactory = $logger_factory->get('skating_video_uploader');
     $this->fileSystem = $file_system;
+    $this->database = $database;
   }
 
   /**
@@ -264,8 +276,7 @@ class MetadataExtractor {
   protected function storeMetadata(array $metadata) {
     try {
       // Check if metadata already exists for this VideoJS Media entity.
-      $connection = \Drupal::database();
-      $existing = $connection->select('skating_video_metadata', 'm')
+      $existing = $this->database->select('skating_video_metadata', 'm')
         ->fields('m', ['id'])
         ->condition('videojs_media_id', $metadata['videojs_media_id'])
         ->execute()
@@ -274,7 +285,7 @@ class MetadataExtractor {
       if ($existing) {
         // Update existing metadata.
         $metadata['changed'] = time();
-        $connection->update('skating_video_metadata')
+        $this->database->update('skating_video_metadata')
           ->fields($metadata)
           ->condition('id', $existing)
           ->execute();
@@ -282,7 +293,7 @@ class MetadataExtractor {
       }
       else {
         // Insert new metadata.
-        return $connection->insert('skating_video_metadata')
+        return $this->database->insert('skating_video_metadata')
           ->fields($metadata)
           ->execute();
       }

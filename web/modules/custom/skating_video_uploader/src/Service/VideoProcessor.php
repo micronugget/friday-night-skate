@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Drupal\skating_video_uploader\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\skating_video_uploader\Service\YouTubeUploader;
 use Drupal\videojs_media\VideoJsMediaInterface;
 use Exception;
 
@@ -53,6 +55,20 @@ class VideoProcessor {
   protected $messenger;
 
   /**
+   * The YouTube uploader service.
+   *
+   * @var \Drupal\skating_video_uploader\Service\YouTubeUploader
+   */
+  protected $youtubeUploader;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * Constructs a new VideoProcessor object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -65,19 +81,27 @@ class VideoProcessor {
    *   The config factory.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
+   * @param \Drupal\skating_video_uploader\Service\YouTubeUploader $youtube_uploader
+   *   The YouTube uploader service.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $logger_factory,
     MetadataExtractor $metadata_extractor,
     ConfigFactoryInterface $config_factory,
-    MessengerInterface $messenger
+    MessengerInterface $messenger,
+    YouTubeUploader $youtube_uploader,
+    Connection $database
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->loggerFactory = $logger_factory->get('skating_video_uploader');
     $this->metadataExtractor = $metadata_extractor;
     $this->configFactory = $config_factory;
     $this->messenger = $messenger;
+    $this->youtubeUploader = $youtube_uploader;
+    $this->database = $database;
   }
 
   /**
@@ -118,8 +142,7 @@ class VideoProcessor {
       $this->updateConsentStatus($entity->id(), TRUE);
 
       // Upload the video to YouTube.
-      $youtube_uploader = \Drupal::service('skating_video_uploader.youtube_uploader');
-      $youtube_id = $youtube_uploader->uploadVideo($entity, $metadata);
+      $youtube_id = $this->youtubeUploader->uploadVideo($entity, $metadata);
       if (!$youtube_id) {
         $this->loggerFactory->error('Failed to upload video to YouTube for VideoJS Media entity @id', ['@id' => $entity->id()]);
         $this->messenger->addError(t('Failed to upload the video to YouTube. Please check the YouTube API configuration.'));
@@ -152,8 +175,7 @@ class VideoProcessor {
    */
   protected function updateConsentStatus($videojs_media_id, $consent) {
     try {
-      $connection = \Drupal::database();
-      $connection->update('skating_video_metadata')
+      $this->database->update('skating_video_metadata')
         ->fields([
           'consent_given' => $consent ? 1 : 0,
           'changed' => time(),
@@ -181,8 +203,7 @@ class VideoProcessor {
    */
   protected function updateYouTubeId($videojs_media_id, $youtube_id) {
     try {
-      $connection = \Drupal::database();
-      $connection->update('skating_video_metadata')
+      $this->database->update('skating_video_metadata')
         ->fields([
           'youtube_id' => $youtube_id,
           'changed' => time(),
