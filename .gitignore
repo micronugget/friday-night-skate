@@ -11,6 +11,23 @@
 /web/sites/*/settings.php
 /web/sites/*/settings.local.php
 
+# Ignore private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+*.cer
+*.der
+
+# Ignore database backups and dumps
+*.sql
+*.sql.gz
+*.sql.zip
+*.dump
+*.backup
+
 # Ignore Drupal's file directory
 /web/sites/*/files/
 
@@ -24,6 +41,10 @@
 
 # Ignore .env files as they are personal
 /.env
+.env
+.env.*
+!.env.example
+!.env.*.example
 
 # Customizations
 web/sites/default/development.services.yml
