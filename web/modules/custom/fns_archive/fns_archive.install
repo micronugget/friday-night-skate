@@ -48,7 +48,6 @@ function fns_archive_update_10001(): string {
     'field.field.node.archive_media.field_uploader',
     'field.storage.node.field_metadata',
     'field.field.node.archive_media.field_metadata',
-    'core.entity_view_mode.node.teaser',
     'core.entity_view_mode.node.thumbnail',
     'core.entity_view_mode.node.modal',
     'core.entity_form_display.node.archive_media.default',
