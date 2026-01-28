@@ -1,4 +1,19 @@
-# Drupal CMS
+# Friday Night Skate Archive
+
+A Drupal CMS 2 (Drupal 11) platform for the Friday Night Skate community to upload, organize, and share images and videos from skate sessions.
+
+## 🎨 Featured: Archive Feature
+
+This repository includes a comprehensive implementation plan for the **Friday Night Skate Archive** - a community-driven media archive system. See [.github/ISSUES.md](.github/ISSUES.md) for the complete GitHub Issues breakdown.
+
+### Quick Links
+- 📋 [GitHub Issues Plan](.github/ISSUES.md) - Copy these 16 issues into your GitHub repository
+- 📊 [Issues Summary](.github/ISSUES_SUMMARY.md) - Executive overview and dependency graph
+- 🎨 [Frontend Design Skill](.github/agents/skills/frontend-design/SKILL.md) - Van Gogh's "Starry Night" inspiration
+
+---
+
+## Drupal CMS Foundation
 
 Drupal CMS is a fast-moving open source product that enables site builders to easily create new Drupal sites and extend them with smart defaults, all using their browser.
 
