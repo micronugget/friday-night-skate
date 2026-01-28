@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Primary module hooks for FNS Archive module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_presave() for node entities.
+ *
+ * Auto-populates the uploader field with the current user when creating a new
+ * archive_media node.
+ */
+function fns_archive_node_presave(EntityInterface $node): void {
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  // Only process archive_media content type.
+  if ($node->bundle() !== 'archive_media') {
+    return;
+  }
+
+  // Only auto-populate on new nodes.
+  if ($node->isNew() && $node->hasField('field_uploader')) {
+    // If uploader field is empty, set it to the current user.
+    if ($node->get('field_uploader')->isEmpty()) {
+      $current_user = \Drupal::currentUser();
+      $node->set('field_uploader', $current_user->id());
+    }
+  }
+}
