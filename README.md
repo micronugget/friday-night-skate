@@ -1,4 +1,55 @@
-# Drupal CMS
+# Friday Night Skate Archive
+
+A Drupal CMS 2 (Drupal 11) platform for the Friday Night Skate community to upload, organize, and share images and videos from skate sessions.
+
+## 🎨 Featured: Archive Feature
+
+This repository includes a comprehensive implementation plan for the **Friday Night Skate Archive** - a community-driven media archive system.
+
+### 🚀 Create GitHub Issues Automatically
+
+We've included a Python script that automatically creates all 16 GitHub Issues (1 Epic + 15 Sub-Issues) from the documentation.
+
+#### 🐳 Important for DDEV Users
+
+**Run these commands on your Ubuntu 24.04 HOST machine (not in DDEV):**
+
+```bash
+# 1. Install GitHub CLI on your host machine (one-time setup)
+# See scripts/README.md for detailed Ubuntu 24.04 installation
+
+# 2. Authenticate with GitHub on your host machine (one-time setup)
+gh auth login
+
+# 3. Test what will be created (dry run)
+python3 scripts/create_github_issues.py --dry-run
+
+# 4. Create all issues
+python3 scripts/create_github_issues.py
+```
+
+**Why not use `ddev`?** This script creates GitHub Issues via the API and needs your personal GitHub authentication, which is handled on your host machine (not in the Docker container). Use DDEV for Drupal commands; use your host for GitHub Issues management.
+
+This will create:
+- ✅ 1 Epic Issue: Friday Night Skate Archive Feature
+- ✅ 15 Sub-Issues with proper labels and linking
+- ✅ All technical requirements and validation checklists
+- ✅ Proper dependencies and handoff information
+
+**See:** [scripts/README.md](scripts/README.md) for detailed instructions including Ubuntu 24.04 specific installation.
+
+**🐳 DDEV User?** See [QUICKSTART_DDEV.md](QUICKSTART_DDEV.md) for a complete guide on host vs container commands.
+
+### 📋 Documentation Links
+- 🚀 [QUICKSTART_DDEV.md](QUICKSTART_DDEV.md) - **Quick guide for DDEV users on Ubuntu 24.04**
+- 📋 [GitHub Issues Plan](.github/ISSUES.md) - Source document for all issues
+- 📊 [Issues Summary](.github/ISSUES_SUMMARY.md) - Executive overview and dependency graph
+- 🎨 [Frontend Design Skill](.github/agents/skills/frontend-design/SKILL.md) - Van Gogh's "Starry Night" inspiration
+- 🛠️ [Scripts README](scripts/README.md) - How to use the issue creation script
+
+---
+
+## Drupal CMS Foundation
 
 Drupal CMS is a fast-moving open source product that enables site builders to easily create new Drupal sites and extend them with smart defaults, all using their browser.
 
