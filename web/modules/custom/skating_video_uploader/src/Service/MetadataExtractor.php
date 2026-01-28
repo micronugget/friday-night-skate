@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\skating_video_uploader\Service;
 
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\media\MediaInterface;
-use FFMpeg\FFMpeg;
-use FFMpeg\FFProbe;
+use Drupal\videojs_media\VideoJsMediaInterface;
 use Exception;
 
 /**
@@ -37,6 +38,13 @@ class MetadataExtractor {
   protected $fileSystem;
 
   /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * Constructs a new MetadataExtractor object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -45,32 +53,36 @@ class MetadataExtractor {
    *   The logger factory.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   The file system service.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $logger_factory,
-    FileSystemInterface $file_system
+    FileSystemInterface $file_system,
+    Connection $database
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->loggerFactory = $logger_factory->get('skating_video_uploader');
     $this->fileSystem = $file_system;
+    $this->database = $database;
   }
 
   /**
    * Extracts metadata from a video file and stores it in the database.
    *
-   * @param \Drupal\media\MediaInterface $media
-   *   The media entity containing the video file.
+   * @param \Drupal\videojs_media\VideoJsMediaInterface $videojs_media
+   *   The VideoJS Media entity containing the video file.
    *
    * @return array|null
    *   An array of metadata or NULL if extraction failed.
    */
-  public function extractMetadata(MediaInterface $media) {
+  public function extractMetadata(VideoJsMediaInterface $videojs_media) {
     try {
-      // Get the file entity from the media entity.
-      $file = $this->getFileFromMedia($media);
+      // Get the file entity from the VideoJS Media entity.
+      $file = $this->getFileFromVideoJsMedia($videojs_media);
       if (!$file) {
-        $this->loggerFactory->error('No file found in media entity @id', ['@id' => $media->id()]);
+        $this->loggerFactory->error('No file found in VideoJS Media entity @id', ['@id' => $videojs_media->id()]);
         return NULL;
       }
 
@@ -83,70 +95,18 @@ class MetadataExtractor {
         return NULL;
       }
 
-      // Extract metadata using FFProbe.
-      $ffprobe = FFProbe::create();
-      $format = $ffprobe->format($local_path);
-      $streams = $ffprobe->streams($local_path);
-      $video_stream = NULL;
-
-      // Find the video stream.
-      foreach ($streams as $stream) {
-        if ($stream->isVideo()) {
-          $video_stream = $stream;
-          break;
-        }
-      }
-
-      if (!$video_stream) {
-        $this->loggerFactory->error('No video stream found in file @uri', ['@uri' => $uri]);
+      // Extract metadata using ffprobe command.
+      $metadata = $this->extractWithFFProbe($local_path);
+      if (!$metadata) {
+        $this->loggerFactory->error('Failed to extract metadata from @uri', ['@uri' => $uri]);
         return NULL;
       }
 
-      // Extract basic metadata.
-      $metadata = [
-        'media_id' => $media->id(),
-        'file_id' => $file->id(),
-        'creation_time' => $format->get('creation_time', ''),
-        'duration' => $format->get('duration', 0),
-        'created' => time(),
-        'changed' => time(),
-      ];
-
-      // Extract GPS metadata if available.
-      $tags = $format->get('tags', []);
-      if (isset($tags['location'])) {
-        // Parse location string (format: "+35.6812+139.7671/")
-        $location = $tags['location'];
-        preg_match('/([+-]\d+\.\d+)([+-]\d+\.\d+)/', $location, $matches);
-        if (count($matches) >= 3) {
-          $metadata['latitude'] = (float) $matches[1];
-          $metadata['longitude'] = (float) $matches[2];
-        }
-      }
-
-      // Extract additional GPS metadata if available.
-      if (isset($tags['com.apple.quicktime.location.ISO6709'])) {
-        $location = $tags['com.apple.quicktime.location.ISO6709'];
-        preg_match('/([+-]\d+\.\d+)([+-]\d+\.\d+)([+-]\d+\.\d+)?/', $location, $matches);
-        if (count($matches) >= 3) {
-          $metadata['latitude'] = (float) $matches[1];
-          $metadata['longitude'] = (float) $matches[2];
-          if (isset($matches[3])) {
-            $metadata['altitude'] = (float) $matches[3];
-          }
-        }
-      }
-
-      // Extract timecode data if available.
-      $timecode_data = [];
-      if ($video_stream->has('timecode')) {
-        $timecode_data['timecode'] = $video_stream->get('timecode');
-      }
-
-      // Add any additional timecode-related metadata.
-      if (!empty($timecode_data)) {
-        $metadata['timecode_data'] = serialize($timecode_data);
-      }
+      // Add VideoJS Media and file IDs.
+      $metadata['videojs_media_id'] = $videojs_media->id();
+      $metadata['file_id'] = $file->id();
+      $metadata['created'] = time();
+      $metadata['changed'] = time();
 
       // Store the metadata in the database.
       $this->storeMetadata($metadata);
@@ -160,30 +120,144 @@ class MetadataExtractor {
   }
 
   /**
-   * Gets the file entity from a media entity.
+   * Extracts metadata from a video file using ffprobe.
    *
-   * @param \Drupal\media\MediaInterface $media
-   *   The media entity.
+   * @param string $file_path
+   *   The local path to the video file.
+   *
+   * @return array|null
+   *   An array of metadata or NULL if extraction failed.
+   */
+  protected function extractWithFFProbe(string $file_path): ?array {
+    // Escape the file path for shell command.
+    $escaped_path = escapeshellarg($file_path);
+
+    // Run ffprobe to get metadata in JSON format.
+    $command = "ffprobe -v quiet -print_format json -show_format -show_streams {$escaped_path} 2>&1";
+    $output = shell_exec($command);
+
+    if (!$output) {
+      $this->loggerFactory->error('ffprobe command failed or produced no output');
+      return NULL;
+    }
+
+    // Decode the JSON output.
+    $data = json_decode($output, TRUE);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+      $this->loggerFactory->error('Failed to decode ffprobe output: @error', ['@error' => json_last_error_msg()]);
+      return NULL;
+    }
+
+    $metadata = [];
+
+    // Extract basic format metadata.
+    if (isset($data['format'])) {
+      $format = $data['format'];
+      if (isset($format['duration'])) {
+        $metadata['duration'] = (float) $format['duration'];
+      }
+
+      // Extract GPS and creation time from format tags.
+      if (isset($format['tags'])) {
+        $tags = $format['tags'];
+
+        // Try different tag names for creation time.
+        foreach (['creation_time', 'com.apple.quicktime.creationdate', 'date'] as $tag_name) {
+          if (isset($tags[$tag_name])) {
+            $metadata['creation_time'] = $tags[$tag_name];
+            break;
+          }
+        }
+
+        // Extract GPS metadata - format: "+35.6812+139.7671/" or similar.
+        if (isset($tags['location'])) {
+          $gps_data = $this->parseGpsLocation($tags['location']);
+          if ($gps_data) {
+            $metadata = array_merge($metadata, $gps_data);
+          }
+        }
+
+        // Try Apple's location format.
+        if (isset($tags['com.apple.quicktime.location.ISO6709'])) {
+          $gps_data = $this->parseGpsLocation($tags['com.apple.quicktime.location.ISO6709']);
+          if ($gps_data) {
+            $metadata = array_merge($metadata, $gps_data);
+          }
+        }
+      }
+    }
+
+    // Extract timecode data from video stream.
+    if (isset($data['streams']) && is_array($data['streams'])) {
+      $timecode_data = [];
+      foreach ($data['streams'] as $stream) {
+        if (isset($stream['codec_type']) && $stream['codec_type'] === 'video') {
+          // Extract timecode if available.
+          if (isset($stream['tags']['timecode'])) {
+            $timecode_data['timecode'] = $stream['tags']['timecode'];
+          }
+          // Add frame rate information.
+          if (isset($stream['r_frame_rate'])) {
+            $timecode_data['frame_rate'] = $stream['r_frame_rate'];
+          }
+          break;
+        }
+      }
+
+      if (!empty($timecode_data)) {
+        $metadata['timecode_data'] = serialize($timecode_data);
+      }
+    }
+
+    return $metadata;
+  }
+
+  /**
+   * Parses GPS location string into latitude, longitude, and altitude.
+   *
+   * @param string $location
+   *   The location string (e.g., "+35.6812+139.7671/" or "+35.6812+139.7671+100.5/").
+   *
+   * @return array
+   *   An array with latitude, longitude, and optionally altitude.
+   */
+  protected function parseGpsLocation(string $location): array {
+    $result = [];
+
+    // Parse location string - format: "+35.6812+139.7671/" or "+35.6812+139.7671+100.5/".
+    if (preg_match('/([+-]\d+\.\d+)([+-]\d+\.\d+)([+-]\d+\.\d+)?/', $location, $matches)) {
+      $result['latitude'] = (float) $matches[1];
+      $result['longitude'] = (float) $matches[2];
+      if (isset($matches[3]) && $matches[3] !== '') {
+        $result['altitude'] = (float) $matches[3];
+      }
+    }
+
+    return $result;
+  }
+
+  /**
+   * Gets the file entity from a VideoJS Media entity.
+   *
+   * @param \Drupal\videojs_media\VideoJsMediaInterface $videojs_media
+   *   The VideoJS Media entity.
    *
    * @return \Drupal\file\FileInterface|null
    *   The file entity or NULL if not found.
    */
-  protected function getFileFromMedia(MediaInterface $media) {
-    // Check if this is a videojs_video media entity.
-    if ($media->bundle() == 'videojs_video') {
-      $field_name = 'field_media_videojs_video_file';
-    }
-    // Check if this is a standard video media entity.
-    elseif ($media->bundle() == 'video') {
-      $field_name = 'field_media_video_file';
-    }
-    else {
+  protected function getFileFromVideoJsMedia(VideoJsMediaInterface $videojs_media) {
+    // Check if this is a local_video or local_audio VideoJS Media entity.
+    $bundle = $videojs_media->bundle();
+    if ($bundle !== 'local_video' && $bundle !== 'local_audio') {
       return NULL;
     }
 
-    // Get the file entity from the media entity.
-    if ($media->hasField($field_name) && !$media->get($field_name)->isEmpty()) {
-      $target_id = $media->get($field_name)->target_id;
+    // VideoJS Media uses field_media_file for local video/audio files.
+    $field_name = 'field_media_file';
+
+    // Get the file entity from the VideoJS Media entity.
+    if ($videojs_media->hasField($field_name) && !$videojs_media->get($field_name)->isEmpty()) {
+      $target_id = $videojs_media->get($field_name)->target_id;
       return $this->entityTypeManager->getStorage('file')->load($target_id);
     }
 
@@ -201,18 +275,17 @@ class MetadataExtractor {
    */
   protected function storeMetadata(array $metadata) {
     try {
-      // Check if metadata already exists for this media entity.
-      $connection = \Drupal::database();
-      $existing = $connection->select('skating_video_metadata', 'm')
+      // Check if metadata already exists for this VideoJS Media entity.
+      $existing = $this->database->select('skating_video_metadata', 'm')
         ->fields('m', ['id'])
-        ->condition('media_id', $metadata['media_id'])
+        ->condition('videojs_media_id', $metadata['videojs_media_id'])
         ->execute()
         ->fetchField();
 
       if ($existing) {
         // Update existing metadata.
         $metadata['changed'] = time();
-        $connection->update('skating_video_metadata')
+        $this->database->update('skating_video_metadata')
           ->fields($metadata)
           ->condition('id', $existing)
           ->execute();
@@ -220,7 +293,7 @@ class MetadataExtractor {
       }
       else {
         // Insert new metadata.
-        return $connection->insert('skating_video_metadata')
+        return $this->database->insert('skating_video_metadata')
           ->fields($metadata)
           ->execute();
       }

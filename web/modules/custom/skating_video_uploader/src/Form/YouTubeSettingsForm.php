@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\skating_video_uploader\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
