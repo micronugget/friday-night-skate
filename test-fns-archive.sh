@@ -67,13 +67,23 @@ fi
 
 # Enable core dependencies
 print_info "Enabling core and contributed dependencies..."
-ddev drush en node field taxonomy datetime text user media geofield pathauto -y
+ddev drush en \
+  announcements_feed automated_cron big_pipe block breakpoint ckeditor5 config \
+  content_moderation contextual datetime dblog dynamic_page_cache editor field \
+  field_ui file filter image inline_form_errors layout_builder layout_discovery \
+  link media media_library menu_link_content menu_ui mysql navigation node \
+  options package_manager page_cache path path_alias responsive_image system \
+  taxonomy text update user views views_ui workflows \
+  automatic_updates autosave_form bpmn_io captcha coffee crop dashboard \
+  drupal_cms_helper easy_breadcrumb easy_email easy_email_override eca eca_base \
+  eca_config eca_content eca_form eca_misc eca_modeller_bpmn eca_render eca_ui \
+  eca_user focal_point friendlycaptcha geofield gin_toolbar honeypot jquery_ui \
+  jquery_ui_resizable klaro linkit login_emailusername mailsystem \
+  menu_link_attributes pathauto project_browser redirect_404 redirect sam \
+  scheduler scheduler_content_moderation_integration svg_image \
+  symfony_mailer_lite tagify_user_list tagify token trash fns_archive \
+  claro olivero stark drupal_cms_olivero easy_email_theme gin -y
 print_status "Core and contributed dependencies enabled"
-
-# Enable fns_archive module
-print_info "Enabling fns_archive module..."
-ddev drush en fns_archive -y
-print_status "fns_archive module enabled"
 
 # Clear cache
 print_info "Clearing cache..."
