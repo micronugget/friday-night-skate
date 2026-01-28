@@ -9,4 +9,4 @@ services:
 
   skating_video_uploader.youtube_uploader:
     class: Drupal\skating_video_uploader\Service\YouTubeUploader
-    arguments: ['@entity_type.manager', '@logger.factory', '@config.factory', '@messenger']
+    arguments: ['@entity_type.manager', '@logger.factory', '@config.factory', '@messenger', '@file_system']

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\skating_video_uploader\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -7,7 +9,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\media\MediaInterface;
+use Drupal\videojs_media\VideoJsMediaInterface;
 use Exception;
 use Google_Client;
 use Google_Service_YouTube;
@@ -50,6 +52,13 @@ class YouTubeUploader {
   protected $messenger;
 
   /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
    * Constructs a new YouTubeUploader object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -60,42 +69,46 @@ class YouTubeUploader {
    *   The config factory.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
+   * @param \Drupal\Core\File\FileSystemInterface $file_system
+   *   The file system service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $logger_factory,
     ConfigFactoryInterface $config_factory,
-    MessengerInterface $messenger
+    MessengerInterface $messenger,
+    FileSystemInterface $file_system
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->loggerFactory = $logger_factory->get('skating_video_uploader');
     $this->configFactory = $config_factory;
     $this->messenger = $messenger;
+    $this->fileSystem = $file_system;
   }
 
   /**
    * Uploads a video to YouTube.
    *
-   * @param \Drupal\media\MediaInterface $media
-   *   The media entity containing the video file.
+   * @param \Drupal\videojs_media\VideoJsMediaInterface $videojs_media
+   *   The VideoJS Media entity containing the video file.
    * @param array $metadata
    *   The metadata extracted from the video file.
    *
    * @return string|null
    *   The YouTube video ID if upload was successful, NULL otherwise.
    */
-  public function uploadVideo(MediaInterface $media, array $metadata) {
+  public function uploadVideo(VideoJsMediaInterface $videojs_media, array $metadata) {
     try {
-      // Get the file entity from the media entity.
-      $file = $this->getFileFromMedia($media);
+      // Get the file entity from the VideoJS Media entity.
+      $file = $this->getFileFromVideoJsMedia($videojs_media);
       if (!$file) {
-        $this->loggerFactory->error('No file found in media entity @id', ['@id' => $media->id()]);
+        $this->loggerFactory->error('No file found in VideoJS Media entity @id', ['@id' => $videojs_media->id()]);
         return NULL;
       }
 
       // Get the file URI and convert it to a local path.
       $uri = $file->getFileUri();
-      $local_path = \Drupal::service('file_system')->realpath($uri);
+      $local_path = $this->fileSystem->realpath($uri);
 
       if (!$local_path || !file_exists($local_path)) {
         $this->loggerFactory->error('File not found at @uri', ['@uri' => $uri]);
@@ -114,8 +127,17 @@ class YouTubeUploader {
 
       // Prepare the video metadata.
       $snippet = new Google_Service_YouTube_VideoSnippet();
-      $snippet->setTitle($media->label() ?: 'Skating Video ' . date('Y-m-d H:i:s'));
-      $snippet->setDescription('Uploaded from Friday Night Skate Club website');
+      $snippet->setTitle($videojs_media->getName() ?: 'Skating Video ' . date('Y-m-d H:i:s'));
+      
+      // Build description with metadata.
+      $description = 'Uploaded from Friday Night Skate Club website';
+      if (isset($metadata['latitude']) && isset($metadata['longitude'])) {
+        $description .= "\n\nLocation: {$metadata['latitude']}, {$metadata['longitude']}";
+      }
+      if (isset($metadata['creation_time'])) {
+        $description .= "\nRecorded: {$metadata['creation_time']}";
+      }
+      $snippet->setDescription($description);
       $snippet->setTags(['skating', 'friday night skate', 'club']);
       $snippet->setCategoryId('17'); // Sports category
 
@@ -129,7 +151,7 @@ class YouTubeUploader {
       $video->setStatus($status);
 
       // Set up the chunked upload.
-      $client->setDefer(true);
+      $client->setDefer(TRUE);
       $insertRequest = $youtube->videos->insert('snippet,status', $video);
       $media_file = new Google_Http_MediaFileUpload(
         $client,
@@ -142,17 +164,17 @@ class YouTubeUploader {
       $media_file->setFileSize(filesize($local_path));
 
       // Upload the file in chunks.
-      $status = FALSE;
+      $upload_status = FALSE;
       $handle = fopen($local_path, 'rb');
-      while (!$status && !feof($handle)) {
+      while (!$upload_status && !feof($handle)) {
         $chunk = fread($handle, 1 * 1024 * 1024);
-        $status = $media_file->nextChunk($chunk);
+        $upload_status = $media_file->nextChunk($chunk);
       }
       fclose($handle);
 
       // If upload was successful, return the YouTube video ID.
-      if ($status) {
-        $youtube_id = $status->getId();
+      if ($upload_status) {
+        $youtube_id = $upload_status->getId();
         $this->loggerFactory->notice('Video uploaded to YouTube with ID @id', ['@id' => $youtube_id]);
         return $youtube_id;
       }
@@ -228,30 +250,27 @@ class YouTubeUploader {
   }
 
   /**
-   * Gets the file entity from a media entity.
+   * Gets the file entity from a VideoJS Media entity.
    *
-   * @param \Drupal\media\MediaInterface $media
-   *   The media entity.
+   * @param \Drupal\videojs_media\VideoJsMediaInterface $videojs_media
+   *   The VideoJS Media entity.
    *
    * @return \Drupal\file\FileInterface|null
    *   The file entity or NULL if not found.
    */
-  protected function getFileFromMedia(MediaInterface $media) {
-    // Check if this is a videojs_video media entity.
-    if ($media->bundle() == 'videojs_video') {
-      $field_name = 'field_media_videojs_video_file';
-    }
-    // Check if this is a standard video media entity.
-    elseif ($media->bundle() == 'video') {
-      $field_name = 'field_media_video_file';
-    }
-    else {
+  protected function getFileFromVideoJsMedia(VideoJsMediaInterface $videojs_media) {
+    // Check if this is a local_video or local_audio VideoJS Media entity.
+    $bundle = $videojs_media->bundle();
+    if ($bundle !== 'local_video' && $bundle !== 'local_audio') {
       return NULL;
     }
 
-    // Get the file entity from the media entity.
-    if ($media->hasField($field_name) && !$media->get($field_name)->isEmpty()) {
-      $target_id = $media->get($field_name)->target_id;
+    // VideoJS Media uses field_media_file for local video/audio files.
+    $field_name = 'field_media_file';
+
+    // Get the file entity from the VideoJS Media entity.
+    if ($videojs_media->hasField($field_name) && !$videojs_media->get($field_name)->isEmpty()) {
+      $target_id = $videojs_media->get($field_name)->target_id;
       return $this->entityTypeManager->getStorage('file')->load($target_id);
     }
 

@@ -18,8 +18,8 @@ function skating_video_uploader_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ],
-      'media_id' => [
-        'description' => 'The ID of the media entity.',
+      'videojs_media_id' => [
+        'description' => 'The ID of the VideoJS Media entity.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -90,14 +90,14 @@ function skating_video_uploader_schema() {
     ],
     'primary key' => ['id'],
     'indexes' => [
-      'media_id' => ['media_id'],
+      'videojs_media_id' => ['videojs_media_id'],
       'file_id' => ['file_id'],
       'youtube_id' => ['youtube_id'],
     ],
     'foreign keys' => [
-      'media_entity' => [
-        'table' => 'media',
-        'columns' => ['media_id' => 'mid'],
+      'videojs_media_entity' => [
+        'table' => 'videojs_media',
+        'columns' => ['videojs_media_id' => 'id'],
       ],
       'file_entity' => [
         'table' => 'file_managed',
