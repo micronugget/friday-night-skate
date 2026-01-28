@@ -38,7 +38,10 @@ This will create:
 
 **See:** [scripts/README.md](scripts/README.md) for detailed instructions including Ubuntu 24.04 specific installation.
 
+**🐳 DDEV User?** See [QUICKSTART_DDEV.md](QUICKSTART_DDEV.md) for a complete guide on host vs container commands.
+
 ### 📋 Documentation Links
+- 🚀 [QUICKSTART_DDEV.md](QUICKSTART_DDEV.md) - **Quick guide for DDEV users on Ubuntu 24.04**
 - 📋 [GitHub Issues Plan](.github/ISSUES.md) - Source document for all issues
 - 📊 [Issues Summary](.github/ISSUES_SUMMARY.md) - Executive overview and dependency graph
 - 🎨 [Frontend Design Skill](.github/agents/skills/frontend-design/SKILL.md) - Van Gogh's "Starry Night" inspiration
