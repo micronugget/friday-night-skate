@@ -2,6 +2,33 @@
 
 This document provides instructions for testing and validating the FNS Archive module.
 
+## Automated Testing
+
+### Quick Test (Recommended)
+The repository includes an automated test script that sets up DDEV and tests the module:
+
+```bash
+# Run the automated test script
+./test-fns-archive.sh
+```
+
+This script will:
+1. Install DDEV (if not already installed)
+2. Configure and start the DDEV project
+3. Install dependencies
+4. Enable required modules
+5. Enable the fns_archive module
+6. Create test taxonomy terms
+7. Verify configuration
+
+### GitHub Copilot Testing
+When you assign an issue to @copilot, it can automatically test your code using the `.github/copilot-setup-steps.yml` workflow. This workflow:
+- Boots an ephemeral Ubuntu environment
+- Installs DDEV and Docker
+- Sets up the project
+- Tests the fns_archive module installation
+- Verifies configuration
+
 ## Pre-Installation Validation
 
 ### YAML Syntax Validation
@@ -17,7 +44,7 @@ php -l web/modules/custom/fns_archive/fns_archive.module
 php -l web/modules/custom/fns_archive/fns_archive.install
 ```
 
-## Installation Testing (with DDEV)
+## Manual Installation Testing (with DDEV)
 
 ### 1. Enable the Module
 ```bash

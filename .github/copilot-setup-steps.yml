@@ -1,0 +1,93 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    
+    env:
+      # Use GitHub token for Composer authentication
+      COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install DDEV
+        run: |
+          # Install DDEV using the official installer
+          curl -LO https://raw.githubusercontent.com/ddev/ddev/master/scripts/install_ddev.sh
+          bash install_ddev.sh
+          ddev --version
+          
+      - name: Configure DDEV project
+        run: |
+          ddev config --project-type=drupal11 --docroot=web --project-name=friday-night-skate
+          
+      - name: Start DDEV
+        run: |
+          ddev start
+          
+      - name: Install dependencies
+        run: |
+          # Install Composer dependencies with timeout
+          ddev composer install --no-interaction --prefer-dist
+          
+      - name: Unpack Drupal recipes
+        run: |
+          ddev composer drupal:recipe-unpack --no-interaction
+          
+      - name: Install Drupal
+        run: |
+          # Check if Drupal is already installed
+          if ! ddev drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then
+            # Install Drupal with minimal profile
+            ddev drush site:install minimal --account-name=admin --account-pass=admin -y
+          fi
+          
+      - name: Enable required modules
+        run: |
+          # Enable core dependencies
+          ddev drush en node field taxonomy datetime text user media -y
+          
+          # Install and enable contributed modules
+          ddev composer require drupal/geofield drupal/pathauto --no-interaction
+          ddev drush en geofield pathauto -y
+          
+      - name: Enable fns_archive module
+        run: |
+          ddev drush en fns_archive -y
+          
+      - name: Clear cache
+        run: |
+          ddev drush cr
+          
+      - name: Check configuration status
+        run: |
+          ddev drush cst
+          
+      - name: Verify module is enabled
+        run: |
+          ddev drush pml --filter=fns_archive --format=yaml
+          
+      - name: Create test taxonomy term
+        run: |
+          ddev drush term:create skate_dates "2024-01-15 - Downtown Loop" --format=yaml
+          
+      - name: List taxonomy terms
+        run: |
+          ddev drush taxonomy:list skate_dates
+          
+      - name: Verify content type exists
+        run: |
+          ddev drush entity:info node --filter=archive_media
+          
+      - name: Export final configuration
+        run: |
+          ddev drush cex -y
+          
+      - name: Show project info
+        run: |
+          ddev describe
