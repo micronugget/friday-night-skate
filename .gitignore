@@ -49,6 +49,7 @@
 # Customizations
 web/sites/default/development.services.yml
 backup*
+output/*
 drush/sites/
 drush/sites/examples.tar.xz
 drush/*
