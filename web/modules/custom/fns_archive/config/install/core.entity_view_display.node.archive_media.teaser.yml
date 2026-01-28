@@ -1,0 +1,39 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.archive_media.field_archive_media
+    - field.field.node.archive_media.field_skate_date
+    - node.type.archive_media
+id: node.archive_media.teaser
+targetEntityType: node
+bundle: archive_media
+mode: teaser
+content:
+  field_archive_media:
+    type: entity_reference_label
+    weight: 1
+    region: content
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+  field_skate_date:
+    type: entity_reference_label
+    weight: 2
+    region: content
+    label: inline
+    settings:
+      link: true
+    third_party_settings: {  }
+  links:
+    weight: 100
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  field_gps_coordinates: true
+  field_metadata: true
+  field_timestamp: true
+  field_uploader: true
