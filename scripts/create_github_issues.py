@@ -30,7 +30,7 @@ class GitHubIssueCreator:
     
     # Label definitions with colors
     LABELS = {
-        'epic': 'purple',
+        'epic': 'a020f0',  # Purple - Fixed: was 'purple' which is invalid
         'enhancement': '84b6eb',
         'archive': '0e8a16',
         'backend': 'd73a4a',
