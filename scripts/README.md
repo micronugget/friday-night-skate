@@ -12,34 +12,80 @@ This script parses the comprehensive ISSUES.md documentation and creates:
 - 1 Epic Issue for the Archive Feature
 - 15 Sub-Issues with proper labels, priorities, and linking
 
+### 🐳 Important for DDEV Users
+
+**This script runs on your HOST machine (Ubuntu 24.04), NOT inside the DDEV container.**
+
+Unlike Drupal commands which require `ddev` prefix, this script:
+- ✅ Runs directly on your Ubuntu workstation
+- ✅ Uses GitHub CLI installed on your host machine
+- ✅ Does NOT use `ddev exec` or `ddev` prefix
+
+**Why?** This script creates GitHub Issues via the GitHub API. It needs your personal GitHub authentication, which is handled on your host machine, not in the Docker container.
+
 ### Prerequisites
 
-1. **GitHub CLI (gh) installed**
+**All of these should be installed on your Ubuntu 24.04 HOST machine:**
+
+1. **Python 3 (usually pre-installed on Ubuntu 24.04)**
    ```bash
-   # Check if installed
-   which gh
-   
-   # Install on Ubuntu/Debian
-   sudo apt install gh
-   
-   # Install on macOS
-   brew install gh
+   # Verify Python 3 is available on host
+   python3 --version
    ```
 
-2. **GitHub Authentication**
+2. **GitHub CLI (gh) - Install on HOST machine**
    ```bash
+   # Check if already installed
+   which gh
+   
+   # If not installed, install on Ubuntu 24.04:
+   (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
+   && sudo mkdir -p -m 755 /etc/apt/keyrings \
+   && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+   && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+   && sudo apt update \
+   && sudo apt install gh -y
+   ```
+
+3. **GitHub Authentication - On HOST machine**
+   ```bash
+   # Authenticate with GitHub (on your Ubuntu host, NOT in DDEV)
    gh auth login
    ```
    
-   Follow the prompts to authenticate with GitHub.
+   Follow the prompts:
+   - Choose: **GitHub.com**
+   - Choose: **HTTPS** (recommended) or SSH
+   - Choose: **Login with a web browser** (easiest)
+   - Copy the one-time code shown
+   - Press Enter to open browser
+   - Paste the code and authorize
+   
+   Once authenticated, verify with:
+   ```bash
+   gh auth status
+   ```
 
 ### Usage
 
-#### Dry Run (Recommended First)
+**⚠️ Run these commands on your Ubuntu HOST machine, NOT in DDEV:**
+
+#### Step 1: Authenticate (One-Time Setup)
+
+```bash
+# On your Ubuntu 24.04 host machine:
+gh auth login
+```
+
+Follow the browser authentication flow.
+
+#### Step 2: Dry Run (Recommended First)
 
 Test what would be created without actually creating issues:
 
 ```bash
+# On your Ubuntu 24.04 host machine:
 python3 scripts/create_github_issues.py --dry-run
 ```
 
@@ -48,11 +94,12 @@ This will show you:
 - Their titles and labels
 - How they would be linked
 
-#### Create Issues
+#### Step 3: Create Issues
 
 Once you're satisfied with the dry run output:
 
 ```bash
+# On your Ubuntu 24.04 host machine:
 python3 scripts/create_github_issues.py
 ```
 
@@ -128,16 +175,68 @@ The script will apply these labels based on issue content:
 
 ### Troubleshooting
 
-#### "GitHub CLI (gh) not found"
+#### 🐳 "I'm using DDEV - where do I run these commands?"
 
-Install the GitHub CLI:
-- Ubuntu/Debian: `sudo apt install gh`
-- macOS: `brew install gh`
-- Windows: Download from https://cli.github.com/
+**Run the script on your Ubuntu 24.04 HOST machine, NOT inside DDEV.**
+
+```bash
+# ❌ DON'T use ddev exec for this script
+# ❌ ddev exec python3 scripts/create_github_issues.py
+
+# ✅ DO run directly on your Ubuntu host
+python3 scripts/create_github_issues.py --dry-run
+```
+
+**Why?** 
+- This script uses GitHub CLI (`gh`) which needs your personal GitHub authentication
+- GitHub authentication is handled on your host machine, not in the Docker container
+- Unlike Drupal commands (which need `ddev` prefix), this script manages GitHub Issues via the API
+
+**Your workflow:**
+1. Use DDEV for Drupal development: `ddev drush`, `ddev composer`, etc.
+2. Use host machine for GitHub Issues: `gh auth login`, `python3 scripts/create_github_issues.py`
+
+#### "GitHub CLI (gh) not found" on Ubuntu 24.04
+
+Install the GitHub CLI on your **host machine**:
+
+```bash
+# Official installation for Ubuntu 24.04
+(type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
+&& sudo mkdir -p -m 755 /etc/apt/keyrings \
+&& wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+&& sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& sudo apt update \
+&& sudo apt install gh -y
+```
+
+Then authenticate:
+```bash
+gh auth login
+```
 
 #### "Not authenticated"
 
-Run `gh auth login` and follow the prompts to authenticate.
+Run `gh auth login` on your **host machine** (not in DDEV) and follow the browser authentication flow:
+1. Choose: GitHub.com
+2. Choose: HTTPS (recommended)
+3. Choose: Login with a web browser
+4. Copy the one-time code
+5. Complete authentication in browser
+
+Verify authentication:
+```bash
+gh auth status
+```
+
+#### "gh auth login doesn't work in my terminal"
+
+If you're having issues with the browser flow:
+1. Use the **token** authentication method instead
+2. Generate a personal access token at: https://github.com/settings/tokens
+3. Select scopes: `repo` (full repository access)
+4. When running `gh auth login`, choose "Paste an authentication token"
 
 #### "Permission denied"
 

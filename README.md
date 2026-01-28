@@ -8,18 +8,27 @@ This repository includes a comprehensive implementation plan for the **Friday Ni
 
 ### 🚀 Create GitHub Issues Automatically
 
-We've included a Python script that automatically creates all 16 GitHub Issues (1 Epic + 15 Sub-Issues) from the documentation:
+We've included a Python script that automatically creates all 16 GitHub Issues (1 Epic + 15 Sub-Issues) from the documentation.
+
+#### 🐳 Important for DDEV Users
+
+**Run these commands on your Ubuntu 24.04 HOST machine (not in DDEV):**
 
 ```bash
-# 1. Authenticate with GitHub (one-time setup)
+# 1. Install GitHub CLI on your host machine (one-time setup)
+# See scripts/README.md for detailed Ubuntu 24.04 installation
+
+# 2. Authenticate with GitHub on your host machine (one-time setup)
 gh auth login
 
-# 2. Test what will be created (dry run)
+# 3. Test what will be created (dry run)
 python3 scripts/create_github_issues.py --dry-run
 
-# 3. Create all issues
+# 4. Create all issues
 python3 scripts/create_github_issues.py
 ```
+
+**Why not use `ddev`?** This script creates GitHub Issues via the API and needs your personal GitHub authentication, which is handled on your host machine (not in the Docker container). Use DDEV for Drupal commands; use your host for GitHub Issues management.
 
 This will create:
 - ✅ 1 Epic Issue: Friday Night Skate Archive Feature
@@ -27,7 +36,7 @@ This will create:
 - ✅ All technical requirements and validation checklists
 - ✅ Proper dependencies and handoff information
 
-**See:** [scripts/README.md](scripts/README.md) for detailed instructions.
+**See:** [scripts/README.md](scripts/README.md) for detailed instructions including Ubuntu 24.04 specific installation.
 
 ### 📋 Documentation Links
 - 📋 [GitHub Issues Plan](.github/ISSUES.md) - Source document for all issues
