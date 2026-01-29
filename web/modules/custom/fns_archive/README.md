@@ -5,6 +5,16 @@ This module provides the foundational content architecture for the Friday Night 
 
 ## Features
 
+### Content Moderation Workflow
+- **Workflow name:** Archive Review
+- **States:** Draft, In Review, Published, Archived
+- **Roles:** Skater (uploader), Moderator (reviewer)
+- **Email notifications:** Automatic notifications on submission, approval, and rejection
+- **Dashboard:** Moderation queue for reviewers at `/admin/content/moderation`
+- **User view:** Personal content management at `/user/my-archive-content`
+
+See [MODERATION_WORKFLOW.md](./MODERATION_WORKFLOW.md) for complete documentation.
+
 ### Taxonomy Vocabulary: Skate Dates
 - **Machine name:** `skate_dates`
 - **Format:** "YYYY-MM-DD - Location/Description"
@@ -64,6 +74,13 @@ This module is installed automatically when enabled. On installation, it creates
 ### Auto-population
 The module implements `hook_node_presave()` to automatically populate:
 - **Uploader field** with the current user when creating new archive_media nodes
+- **Moderation state tracking** for triggering workflow notifications
+
+### Hooks Implemented
+- `hook_ENTITY_TYPE_presave()` - Track moderation state changes
+- `hook_ENTITY_TYPE_insert()` - Handle new content notifications
+- `hook_ENTITY_TYPE_update()` - Trigger workflow transition notifications
+- `hook_mail()` - Email templates for moderation notifications
 
 ### Update Hook
 The module includes `fns_archive_update_10001()` to install all configurations on existing sites.
@@ -78,6 +95,8 @@ The module includes `fns_archive_update_10001()` to install all configurations o
 - media
 - geofield
 - pathauto
+- content_moderation
+- workflows
 
 ## Maintainers
 - Friday Night Skate development team

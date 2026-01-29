@@ -13,3 +13,5 @@ dependencies:
   - drupal:media
   - drupal:geofield
   - drupal:pathauto
+  - drupal:content_moderation
+  - drupal:workflows
