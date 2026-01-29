@@ -105,8 +105,11 @@
         // Display file count.
         const $description = $wrapper.find('.description');
         if ($description.length > 0 && files.length > 0) {
+          // Remove any previously inserted file count messages.
+          $wrapper.find('.file-count-message').remove();
+          
           const countMsg = Drupal.t('@count file(s) selected', {'@count': files.length});
-          $('<div class="alert alert-info mt-2">' + countMsg + '</div>').insertAfter($description);
+          $('<div class="alert alert-info mt-2 file-count-message">' + countMsg + '</div>').insertAfter($description);
         }
       });
     },

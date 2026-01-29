@@ -262,13 +262,13 @@ None.
 ## Files Modified/Created
 
 ### Created (7 files)
-1. `src/Form/BulkUploadForm.php` (709 lines)
+1. `src/Form/BulkUploadForm.php` (766 lines)
 2. `skating_video_uploader.libraries.yml`
 3. `css/bulk-upload.css` (165 lines)
-4. `js/bulk-upload.js` (169 lines)
+4. `js/bulk-upload.js` (168 lines)
 5. `tests/src/Functional/BulkUploadFormTest.php` (246 lines)
 6. `tests/src/Unit/BulkUploadFormValidationTest.php` (109 lines)
-7. `BULK_UPLOAD_README.md` (362 lines)
+7. `BULK_UPLOAD_README.md` (260 lines)
 
 ### Modified (1 file)
 1. `skating_video_uploader.routing.yml` (added 1 route)
@@ -284,6 +284,20 @@ None.
 2. **Concurrent uploads**: Limited by PHP max_execution_time
 3. **Metadata extraction**: Synchronous (could be queued for better performance)
 4. **YouTube thumbnails**: Not automatically fetched (future enhancement)
+5. **Media field assumptions**: Assumes media bundles use `field_media_video_file` and `field_media_image` as source fields
+
+## Important Notes
+
+### Media Entity Creation
+The form creates Media entities for uploaded files:
+- **Images**: Creates `image` media bundle with `field_media_image`
+- **Videos**: Creates `video` media bundle with `field_media_video_file`
+- Media entities are then referenced in `field_archive_media` on the node
+
+### YouTube URL Storage
+YouTube URLs are stored in the `field_metadata` field as JSON until a dedicated field (e.g., `field_youtube_url`) is added to the archive_media content type. This is a temporary solution.
+
+**Recommended Future Enhancement**: Add a Link field or Text field specifically for YouTube URLs.
 
 ## Recommendations
 

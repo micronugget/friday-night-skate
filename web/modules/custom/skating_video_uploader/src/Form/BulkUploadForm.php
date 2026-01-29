@@ -6,8 +6,8 @@ namespace Drupal\skating_video_uploader\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
-use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
@@ -173,9 +173,9 @@ class BulkUploadForm extends FormBase {
       $class_string = implode(' ', $classes);
       $html .= sprintf(
         '<div class="%s"><span class="step-number">%d</span><span class="step-label">%s</span></div>',
-        $class_string,
+        Html::escape($class_string),
         $step,
-        $label
+        Html::escape($label)
       );
     }
     $html .= '</div>';
@@ -302,7 +302,7 @@ class BulkUploadForm extends FormBase {
             '<div class="file-item d-flex align-items-center mb-2"><span class="badge bg-%s me-2">%s</span><span>%s</span></div>',
             $status === 'success' ? 'success' : 'secondary',
             $status === 'success' ? '✓' : '⋯',
-            $file->getFilename()
+            Html::escape($file->getFilename())
           ),
         ];
       }
@@ -452,11 +452,11 @@ class BulkUploadForm extends FormBase {
     if ($skate_date_id) {
       $term = $this->entityTypeManager->getStorage('taxonomy_term')->load($skate_date_id);
       if ($term) {
-        $summary_html .= '<dt class="col-sm-3">' . $this->t('Skate Date') . '</dt><dd class="col-sm-9">' . $term->getName() . '</dd>';
+        $summary_html .= '<dt class="col-sm-3">' . $this->t('Skate Date') . '</dt><dd class="col-sm-9">' . Html::escape($term->getName()) . '</dd>';
       }
     }
 
-    $summary_html .= '<dt class="col-sm-3">' . $this->t('Attribution') . '</dt><dd class="col-sm-9">' . htmlspecialchars($attribution ?? '') . '</dd>';
+    $summary_html .= '<dt class="col-sm-3">' . $this->t('Attribution') . '</dt><dd class="col-sm-9">' . Html::escape($attribution ?? '') . '</dd>';
     $summary_html .= '</dl>';
     $summary_html .= '</div>';
 
@@ -507,9 +507,26 @@ class BulkUploadForm extends FormBase {
       return;
     }
 
+    // Server-side validation: maximum 50 files.
+    if (!empty($files) && count($files) > 50) {
+      $form_state->setErrorByName('files', $this->t('You can upload a maximum of 50 files at once. You selected @count files.', [
+        '@count' => count($files),
+      ]));
+      return;
+    }
+
     // Validate YouTube URLs.
     if (!empty($youtube_urls)) {
       $urls = array_filter(array_map('trim', explode("\n", $youtube_urls)));
+      
+      // Server-side validation: maximum 50 YouTube URLs.
+      if (count($urls) > 50) {
+        $form_state->setErrorByName('youtube_urls', $this->t('You can submit a maximum of 50 YouTube URLs at once. You provided @count URLs.', [
+          '@count' => count($urls),
+        ]));
+        return;
+      }
+      
       $valid_urls = [];
       foreach ($urls as $url) {
         if ($this->isValidYouTubeUrl($url)) {
@@ -570,6 +587,10 @@ class BulkUploadForm extends FormBase {
 
   /**
    * AJAX callback for metadata extraction.
+   *
+   * Note: This performs synchronous extraction which may timeout for large
+   * batches. Future enhancement: Implement queue-based processing with
+   * progress updates using Drupal Batch API or Queue API.
    *
    * @param array $form
    *   The form array.
@@ -646,6 +667,7 @@ class BulkUploadForm extends FormBase {
 
     try {
       $node_storage = $this->entityTypeManager->getStorage('node');
+      $media_storage = $this->entityTypeManager->getStorage('media');
 
       // Create archive_media nodes for each uploaded file.
       foreach ($uploaded_files as $file_id) {
@@ -654,10 +676,33 @@ class BulkUploadForm extends FormBase {
           continue;
         }
 
+        // Determine media bundle based on file MIME type.
+        $mime_type = $file->getMimeType();
+        $is_video = str_starts_with($mime_type, 'video/');
+        $bundle = $is_video ? 'video' : 'image';
+        $source_field = $is_video ? 'field_media_video_file' : 'field_media_image';
+
+        // Create media entity.
+        $media = $media_storage->create([
+          'bundle' => $bundle,
+          'name' => $file->getFilename(),
+          $source_field => [
+            'target_id' => $file_id,
+          ],
+          'uid' => $this->currentUser->id(),
+        ]);
+        $media->save();
+
+        // Extract metadata.
         $metadata = $metadata_results[$file_id] ?? [];
+
+        // Create archive_media node with media reference.
         $node = $node_storage->create([
           'type' => 'archive_media',
           'title' => $file->getFilename(),
+          'field_archive_media' => [
+            'target_id' => $media->id(),
+          ],
           'field_skate_date' => ['target_id' => $skate_date_id],
           'field_uploader' => $attribution,
           'field_metadata' => json_encode($metadata),
@@ -669,12 +714,18 @@ class BulkUploadForm extends FormBase {
       }
 
       // Process YouTube URLs.
+      // Note: YouTube URLs require a dedicated field (e.g., field_youtube_url).
+      // For now, we store them in a text field or link field if available.
       foreach ($youtube_urls as $url) {
+        $video_id = $this->extractYouTubeVideoId($url);
+        $title = $video_id ? $this->t('YouTube Video: @id', ['@id' => $video_id]) : $this->t('YouTube Video');
+        
         $node = $node_storage->create([
           'type' => 'archive_media',
-          'title' => $this->t('YouTube Video: @url', ['@url' => substr($url, 0, 50)]),
+          'title' => $title,
           'field_skate_date' => ['target_id' => $skate_date_id],
           'field_uploader' => $attribution,
+          'field_metadata' => json_encode(['youtube_url' => $url]),
           'moderation_state' => 'draft',
           'uid' => $this->currentUser->id(),
         ]);
@@ -682,7 +733,7 @@ class BulkUploadForm extends FormBase {
         $node->save();
       }
 
-      $this->messenger->addStatus($this->t('Successfully uploaded @count files. Your submission has been sent for moderation.', [
+      $this->messenger->addStatus($this->t('Successfully uploaded @count items. Your submission has been sent for moderation.', [
         '@count' => count($uploaded_files) + count($youtube_urls),
       ]));
 
@@ -693,6 +744,23 @@ class BulkUploadForm extends FormBase {
         '@message' => $e->getMessage(),
       ]));
     }
+  }
+
+  /**
+   * Extract YouTube video ID from URL.
+   *
+   * @param string $url
+   *   The YouTube URL.
+   *
+   * @return string|null
+   *   The video ID or NULL if not found.
+   */
+  protected function extractYouTubeVideoId(string $url): ?string {
+    $pattern = '/^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/';
+    if (preg_match($pattern, $url, $matches)) {
+      return $matches[1];
+    }
+    return NULL;
   }
 
 }
