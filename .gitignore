@@ -62,3 +62,6 @@ web/modules/custom/videojs_media/node_modules
 # Ignore output directory
 /output/
 install_ddev.sh
+
+# Ignore test scripts
+test_*.php
