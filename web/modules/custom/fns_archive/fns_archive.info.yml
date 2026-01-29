@@ -11,6 +11,8 @@ dependencies:
   - drupal:text
   - drupal:user
   - drupal:media
+  - drupal:image
+  - drupal:responsive_image
   - drupal:geofield
   - drupal:pathauto
   - drupal:content_moderation

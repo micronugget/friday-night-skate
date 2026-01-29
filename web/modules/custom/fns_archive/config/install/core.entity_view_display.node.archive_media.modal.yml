@@ -3,6 +3,7 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.node.modal
+    - core.entity_view_mode.media.modal
     - field.field.node.archive_media.field_archive_media
     - field.field.node.archive_media.field_gps_coordinates
     - field.field.node.archive_media.field_skate_date
@@ -12,18 +13,20 @@ dependencies:
   module:
     - datetime
     - geofield
+    - media
 id: node.archive_media.modal
 targetEntityType: node
 bundle: archive_media
 mode: modal
 content:
   field_archive_media:
-    type: entity_reference_label
+    type: entity_reference_entity_view
     weight: 1
     region: content
     label: hidden
     settings:
-      link: true
+      view_mode: modal
+      link: false
     third_party_settings: {  }
   field_skate_date:
     type: entity_reference_label

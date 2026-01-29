@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies: {  }
+name: archive_thumbnail
+label: 'Archive Thumbnail'
+effects:
+  crop:
+    uuid: crop
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 400
+      height: 400
+      anchor: center-center
+  webp:
+    uuid: webp
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp
