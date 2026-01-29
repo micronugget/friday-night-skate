@@ -21,10 +21,23 @@ This sets up the DDEV environment that is **required** for all development work 
 - **`copilot-setup.sh`** - **⭐ RUN THIS FIRST** - Automated setup script that installs DDEV and configures the development environment
 - **`copilot-setup-steps.yml`** - GitHub Actions workflow defining all setup steps (used as basis for the setup script)
 - **`copilot-instructions.md`** - **⭐ READ THIS** - Project standards, coding guidelines, and technical requirements
+- **`check-setup.sh`** - Quick verification script to check if environment is ready
 
-### Agents
+### Specialized Agents
 
-- **`agents/`** - Directory containing specialized agent configurations for different roles (Drupal developer, tester, security specialist, etc.)
+- **`AGENT_DIRECTORY.md`** - **⭐ AGENT QUICK REFERENCE** - Complete guide to all specialized agents, when to use them, and task matching
+- **`agents/`** - Directory containing 15+ specialized agent configurations:
+  - **Core Development**: Drupal Developer, Media Developer, Themer
+  - **Quality & Docs**: Tester, Technical Writer
+  - **Infrastructure**: Environment Manager, Provisioner/Deployer, Ansible Developer
+  - **Specialists**: Security Specialist, Performance Engineer, Database Administrator
+  - **Planning**: Architect (Mission Control)
+  - **Design**: UX/UI Designer
+  - See `AGENT_DIRECTORY.md` for complete list with decision tree
+
+### Documentation
+
+- **`SETUP_AUTOMATION.md`** - Documentation of the setup automation solution
 
 ### Issues
 
@@ -38,19 +51,29 @@ This sets up the DDEV environment that is **required** for all development work 
    bash .github/copilot-setup.sh
    ```
 
-2. **Read Instructions**:
+2. **Read Project Instructions**:
    ```bash
    cat .github/copilot-instructions.md
    ```
 
-3. **Verify Setup**:
+3. **Check Available Specialized Agents**:
+   ```bash
+   cat .github/AGENT_DIRECTORY.md
+   ```
+
+4. **Identify Right Agent for Your Task**:
+   - View agent directory for task matching
+   - Use decision tree in AGENT_DIRECTORY.md
+   - Delegate to specialized agent when available
+
+5. **Verify Setup**:
    ```bash
    ddev --version
    ddev describe
    ddev drush status
    ```
 
-4. **Start Working**:
+6. **Start Working**:
    - All Drush commands: `ddev drush [command]`
    - All Composer commands: `ddev composer [command]`
    - All PHPUnit tests: `ddev phpunit [options]`

@@ -37,6 +37,57 @@ ddev drush status       # Should show Drupal is installed
 
 ---
 
+## 0.5. Specialized Agent Team (Task Delegation)
+
+**⭐ This project has a team of specialized AI agents for different tasks.**
+
+Before implementing any feature yourself, check if there's a specialized agent available:
+
+### Quick Agent Reference
+
+**View full agent directory**: `.github/AGENT_DIRECTORY.md`
+
+**Core Development**:
+- **Drupal Developer** (`developer_drupal.md`) - Backend, modules, hooks, content types
+- **Media Developer** (`media-dev.agent.md`) - VideoJS, YouTube, GPS metadata
+- **Themer** (`themer.agent.md`) - Radix 6, Bootstrap 5, Masonry.js, Swiper.js
+
+**Quality & Docs**:
+- **Tester** (`tester.md`) - PHPUnit, PHPStan, Nightwatch testing
+- **Technical Writer** (`technical-writer.md`) - Documentation, guides
+
+**Infrastructure**:
+- **Environment Manager** (`environment-manager.md`) - DDEV, CI/CD
+- **Provisioner/Deployer** (`provisioner-deployer.md`) - Production deployment
+
+**Specialists**:
+- **Security Specialist** (`security-specialist.md`) - Security audits, vulnerabilities
+- **Performance Engineer** (`performance-engineer.md`) - Optimization, caching
+- **Database Administrator** (`database-administrator.md`) - MySQL optimization
+
+**Planning**:
+- **Architect** (`architect.md`) - System design, workflow orchestration
+
+### When to Delegate
+
+✅ **ALWAYS delegate when**:
+- Task matches a specialized agent's expertise
+- Complex implementation requiring domain knowledge
+- Security-sensitive work
+- Performance optimization needed
+
+📋 **Delegation Best Practice**:
+1. Check `.github/AGENT_DIRECTORY.md` for agent matching your task
+2. Review the specific agent file in `.github/agents/`
+3. Delegate to the agent with full context
+4. Trust the agent's output (they're domain experts)
+
+### Agent Location
+
+All agents: `/home/runner/work/friday-night-skate/friday-night-skate/.github/agents/`
+
+---
+
 ## 1. Project Context
 - **System:** Drupal 11 / Drupal CMS 2
 - **Theming:** Radix 6 (Bootstrap 5 subtheme)

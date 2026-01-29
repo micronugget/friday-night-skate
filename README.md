@@ -16,6 +16,13 @@ bash .github/copilot-setup.sh
 
 See [.github/README.md](.github/README.md) for complete setup instructions.
 
+**This project has specialized AI agents for different tasks:**
+
+- View **[.github/AGENT_DIRECTORY.md](.github/AGENT_DIRECTORY.md)** for complete agent reference
+- 15+ specialized agents available: Drupal Developer, Themer, Security Specialist, Tester, etc.
+- Always check for a specialized agent before implementing features yourself
+- Agents are domain experts with specialized knowledge and tooling
+
 ---
 
 ## 🎨 Featured: Archive Feature
