@@ -7,9 +7,7 @@ dependencies:
   - drupal:config
   - drupal:field
   - drupal:file
-  - drupal:media
-  - drupal:media_library
   - drupal:serialization
   - drupal:user
-  - videojs_mediablock:videojs_mediablock
+  - videojs_media:videojs_media
 configure: skating_video_uploader.youtube_settings

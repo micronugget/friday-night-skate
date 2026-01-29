@@ -13,3 +13,11 @@ skating_video_uploader.youtube_oauth_callback:
     _title: 'YouTube OAuth Callback'
   requirements:
     _permission: 'administer site configuration'
+
+skating_video_uploader.bulk_upload:
+  path: '/skate/upload'
+  defaults:
+    _form: '\Drupal\skating_video_uploader\Form\BulkUploadForm'
+    _title: 'Upload Media'
+  requirements:
+    _permission: 'create archive_media content'

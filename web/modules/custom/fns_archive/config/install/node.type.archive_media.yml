@@ -7,6 +7,17 @@ dependencies:
   module:
     - menu_ui
 third_party_settings:
+    - content_moderation
+    - menu_ui
+third_party_settings:
+  content_moderation:
+    enabled: true
+    allowed_moderation_states:
+      - draft
+      - review
+      - published
+      - archived
+    default_moderation_state: draft
   menu_ui:
     available_menus: {  }
     parent: ''
