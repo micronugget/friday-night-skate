@@ -1,5 +1,5 @@
 name: fridaynightskate
-description: "fridaynightskate theme based on <a href='https://www.drupal.org/project/radix' target='_blank'>Radix 6.x</a> and Bootstrap 5.x"
+description: "Starry Night Edition - An atmospheric Radix 6 subtheme inspired by Van Gogh's masterpiece. Features swirling gradients, celestial aesthetics, and golden accents on a deep night sky palette. Based on Bootstrap 5 with Masonry and Swiper integration."
 screenshot: screenshot.png
 'alt text': 'fridaynightskate theme screenshot'
 core_version_requirement: ^11
