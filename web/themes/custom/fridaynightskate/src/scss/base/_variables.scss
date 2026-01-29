@@ -118,7 +118,19 @@ $btn-border-radius-lg: $border-radius-lg;
 // Custom CSS Variables for Dynamic Theming
 // ============================================================================
 :root {
-  // Color system
+  // Color system (RGB values for rgba() usage)
+  --starry-night-sky-rgb: 23, 42, 58;
+  --starry-deep-blue-rgb: 0, 75, 135;
+  --starry-midnight-rgb: 15, 26, 46;
+  --starry-dark-bg-rgb: 10, 15, 30;
+  --starry-golden-rgb: 255, 215, 0;
+  --starry-golden-glow-rgb: 255, 201, 71;
+  --starry-golden-bright-rgb: 255, 235, 59;
+  --starry-swirl-blue-rgb: 30, 90, 125;
+  --starry-swirl-cyan-rgb: 58, 143, 183;
+  --starry-swirl-teal-rgb: 44, 154, 168;
+  
+  // Hex values for solid colors
   --starry-night-sky: #{$starry-night-sky};
   --starry-deep-blue: #{$starry-deep-blue};
   --starry-midnight: #{$starry-midnight};

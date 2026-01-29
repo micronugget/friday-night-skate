@@ -2,7 +2,7 @@ style:
   css:
     theme:
       build/css/main.style.css: {}
-      //fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap: { type: external, minified: true }
+      https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap: { type: external, minified: true }
   js:
     build/js/main.script.js: {}
     build/js/starry-night.js: {}
