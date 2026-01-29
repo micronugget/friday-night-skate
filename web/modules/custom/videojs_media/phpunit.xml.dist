@@ -6,6 +6,9 @@
     cp phpunit.xml.dist phpunit.xml
 
   The phpunit.xml file is git-ignored to allow per-environment customization.
+  
+  Bootstrap path: From web/modules/custom/videojs_media/ to web/core/tests/bootstrap.php
+  ../../../../core/tests/bootstrap.php = 4 levels up to web/, then core/tests/bootstrap.php
 -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
