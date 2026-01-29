@@ -22,6 +22,29 @@ See [MODERATION_WORKFLOW.md](./MODERATION_WORKFLOW.md) for complete documentatio
 - **Hierarchical:** No
 - **Multiple values per node:** No
 
+### Views
+
+#### Archive by Skate Date
+- **Machine name:** `archive_by_date`
+- **Path:** `/archive/%` (where % is the taxonomy term ID)
+- **Purpose:** Display archive media filtered by Skate Date taxonomy term
+- **Display:** Page with Masonry grid layout (unformatted list)
+- **Items per page:** 50 with pagination
+- **Contextual filter:** Skate Date taxonomy term
+- **Filters:** Archive Media content type, Published status only, Published moderation state
+- **Sort:** By field_timestamp DESC (newest first)
+- **Row style:** Rendered entity using "thumbnail" view mode
+
+**Usage Examples:**
+- `/archive/123` - Display all media for skate date term ID 123
+- Title automatically overridden with taxonomy term name
+- Empty state message with link back to archive index
+
+**Integration:** Designed for Masonry.js grid layout with:
+- Unformatted list format (no views-specific wrapper classes)
+- `.masonry-item` row class for JavaScript targeting
+- Thumbnail view mode for consistent media display
+
 ### Content Type: Archive Media
 - **Machine name:** `archive_media`
 - **Purpose:** Store and organize images and videos from Friday Night Skate sessions
