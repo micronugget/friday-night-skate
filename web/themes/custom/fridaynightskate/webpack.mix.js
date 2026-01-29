@@ -65,6 +65,7 @@ for (const sourcePath of glob.sync('components/**/*.scss')) {
   |--------------------------------------------------------------------------
 */
 mix.js('src/js/main.script.js', 'build/js/main.script.js');
+mix.js('src/js/starry-night.js', 'build/js/starry-night.js');
 mix.js('src/js/archive-masonry.js', 'build/js/archive-masonry.js');
 mix.js('src/js/modal-viewer.js', 'build/js/modal-viewer.js');
 
