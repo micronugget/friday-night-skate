@@ -3,6 +3,9 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.node.teaser
+    - field.field.node.archive_media.field_archive_media
+    - field.field.node.archive_media.field_skate_date
+    - node.type.archive_media
     - core.entity_view_mode.media.teaser
     - field.field.node.archive_media.field_archive_media
     - field.field.node.archive_media.field_skate_date
@@ -15,11 +18,13 @@ bundle: archive_media
 mode: teaser
 content:
   field_archive_media:
+    type: entity_reference_label
     type: entity_reference_entity_view
     weight: 1
     region: content
     label: hidden
     settings:
+      link: true
       view_mode: teaser
       link: false
     third_party_settings: {  }

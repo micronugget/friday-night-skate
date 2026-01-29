@@ -20,11 +20,13 @@ bundle: archive_media
 mode: modal
 content:
   field_archive_media:
+    type: entity_reference_label
     type: entity_reference_entity_view
     weight: 1
     region: content
     label: hidden
     settings:
+      link: true
       view_mode: modal
       link: false
     third_party_settings: {  }

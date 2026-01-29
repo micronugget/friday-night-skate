@@ -5,6 +5,8 @@ dependencies:
     module:
       - fns_archive
   module:
+    - menu_ui
+third_party_settings:
     - content_moderation
     - menu_ui
 third_party_settings:

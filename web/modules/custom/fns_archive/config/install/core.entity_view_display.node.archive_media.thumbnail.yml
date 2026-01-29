@@ -3,6 +3,8 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.node.thumbnail
+    - field.field.node.archive_media.field_archive_media
+    - node.type.archive_media
     - core.entity_view_mode.media.thumbnail
     - field.field.node.archive_media.field_archive_media
     - node.type.archive_media
@@ -14,11 +16,13 @@ bundle: archive_media
 mode: thumbnail
 content:
   field_archive_media:
+    type: entity_reference_label
     type: entity_reference_entity_view
     weight: 1
     region: content
     label: hidden
     settings:
+      link: true
       view_mode: thumbnail
       link: false
     third_party_settings: {  }
