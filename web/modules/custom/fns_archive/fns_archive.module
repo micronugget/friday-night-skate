@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
-use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 
 /**
  * Implements hook_ENTITY_TYPE_presave() for node entities.
@@ -37,7 +36,9 @@ function fns_archive_node_presave(EntityInterface $node): void {
   }
 
   // Handle moderation state transitions for notifications.
-  if ($node->hasField('moderation_state')) {
+  // Note: Uses dynamic property for state tracking as hook_presave cannot use
+  // dependency injection. This approach is compatible with PHP 8.1+.
+  if ($node->hasField('moderation_state') && isset($node->original)) {
     $original_state = $node->original->moderation_state->value ?? NULL;
     $new_state = $node->moderation_state->value ?? NULL;
 
@@ -54,7 +55,9 @@ function fns_archive_node_presave(EntityInterface $node): void {
 /**
  * Implements hook_ENTITY_TYPE_insert() for node entities.
  *
- * Sends notifications when new archive_media content is submitted for review.
+ * Sends notifications when new archive_media content is created directly in
+ * the "review" state. This is an edge case; most content transitions to review
+ * via hook_ENTITY_TYPE_update().
  */
 function fns_archive_node_insert(EntityInterface $node): void {
   if (!$node instanceof NodeInterface || $node->bundle() !== 'archive_media') {
@@ -75,6 +78,8 @@ function fns_archive_node_insert(EntityInterface $node): void {
  * Implements hook_ENTITY_TYPE_update() for node entities.
  *
  * Sends notifications based on moderation state transitions.
+ * Note: Uses \Drupal::service() as hook implementations cannot use dependency
+ * injection. This is acceptable Drupal practice for hooks.
  */
 function fns_archive_node_update(EntityInterface $node): void {
   if (!$node instanceof NodeInterface || $node->bundle() !== 'archive_media') {
@@ -98,7 +103,11 @@ function fns_archive_node_update(EntityInterface $node): void {
 
     // Notify on rejection (sent back to draft from review).
     if ($change['to'] === 'draft' && $change['from'] === 'review') {
-      $reason = $node->revision_log->value ?? '';
+      // Get reason from revision log, with safe field access.
+      $reason = '';
+      if ($node->hasField('revision_log') && !$node->get('revision_log')->isEmpty()) {
+        $reason = $node->revision_log->value;
+      }
       $notifier->notifyOnRejection($node, $reason);
     }
   }

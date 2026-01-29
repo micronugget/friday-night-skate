@@ -53,9 +53,23 @@ class ModerationNotifier {
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The entity being moderated.
+   *
+   * @return bool
+   *   TRUE if notifications were sent successfully, FALSE otherwise.
    */
-  public function notifyOnSubmission(ContentEntityInterface $entity): void {
+  public function notifyOnSubmission(ContentEntityInterface $entity): bool {
     $moderators = $this->getModerators();
+    if (empty($moderators)) {
+      $this->loggerFactory->get('fns_archive')->warning(
+        'No moderators found to notify for @entity_type @entity_id',
+        [
+          '@entity_type' => $entity->getEntityTypeId(),
+          '@entity_id' => $entity->id(),
+        ]
+      );
+      return FALSE;
+    }
+
     $author = $entity->getOwner();
     $url = $entity->toUrl('canonical', ['absolute' => TRUE])->toString();
 
@@ -71,18 +85,25 @@ class ModerationNotifier {
       ]),
     ];
 
+    $success = TRUE;
     foreach ($moderators as $moderator) {
-      $this->sendMail($moderator->getEmail(), 'submission', $params);
+      if (!$this->sendMail($moderator->getEmail(), 'submission', $params)) {
+        $success = FALSE;
+      }
     }
 
-    $this->loggerFactory->get('fns_archive')->info(
-      'Moderation notification sent for @entity_type @entity_id to @count moderators',
-      [
-        '@entity_type' => $entity->getEntityTypeId(),
-        '@entity_id' => $entity->id(),
-        '@count' => count($moderators),
-      ]
-    );
+    if ($success) {
+      $this->loggerFactory->get('fns_archive')->info(
+        'Moderation notification sent for @entity_type @entity_id to @count moderators',
+        [
+          '@entity_type' => $entity->getEntityTypeId(),
+          '@entity_id' => $entity->id(),
+          '@count' => count($moderators),
+        ]
+      );
+    }
+
+    return $success;
   }
 
   /**
@@ -90,8 +111,11 @@ class ModerationNotifier {
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The entity being moderated.
+   *
+   * @return bool
+   *   TRUE if notification was sent successfully, FALSE otherwise.
    */
-  public function notifyOnApproval(ContentEntityInterface $entity): void {
+  public function notifyOnApproval(ContentEntityInterface $entity): bool {
     $author = $entity->getOwner();
     $url = $entity->toUrl('canonical', ['absolute' => TRUE])->toString();
     $moderator = $this->currentUser->getDisplayName();
@@ -108,16 +132,20 @@ class ModerationNotifier {
       ]),
     ];
 
-    $this->sendMail($author->getEmail(), 'approval', $params);
+    $success = $this->sendMail($author->getEmail(), 'approval', $params);
 
-    $this->loggerFactory->get('fns_archive')->info(
-      'Approval notification sent for @entity_type @entity_id to @author',
-      [
-        '@entity_type' => $entity->getEntityTypeId(),
-        '@entity_id' => $entity->id(),
-        '@author' => $author->getDisplayName(),
-      ]
-    );
+    if ($success) {
+      $this->loggerFactory->get('fns_archive')->info(
+        'Approval notification sent for @entity_type @entity_id to @author',
+        [
+          '@entity_type' => $entity->getEntityTypeId(),
+          '@entity_id' => $entity->id(),
+          '@author' => $author->getDisplayName(),
+        ]
+      );
+    }
+
+    return $success;
   }
 
   /**
@@ -127,8 +155,11 @@ class ModerationNotifier {
    *   The entity being moderated.
    * @param string $reason
    *   The reason for rejection.
+   *
+   * @return bool
+   *   TRUE if notification was sent successfully, FALSE otherwise.
    */
-  public function notifyOnRejection(ContentEntityInterface $entity, string $reason = ''): void {
+  public function notifyOnRejection(ContentEntityInterface $entity, string $reason = ''): bool {
     $author = $entity->getOwner();
     $url = $entity->toUrl('edit-form', ['absolute' => TRUE])->toString();
     $moderator = $this->currentUser->getDisplayName();
@@ -146,16 +177,20 @@ class ModerationNotifier {
       ]),
     ];
 
-    $this->sendMail($author->getEmail(), 'rejection', $params);
+    $success = $this->sendMail($author->getEmail(), 'rejection', $params);
 
-    $this->loggerFactory->get('fns_archive')->info(
-      'Rejection notification sent for @entity_type @entity_id to @author',
-      [
-        '@entity_type' => $entity->getEntityTypeId(),
-        '@entity_id' => $entity->id(),
-        '@author' => $author->getDisplayName(),
-      ]
-    );
+    if ($success) {
+      $this->loggerFactory->get('fns_archive')->info(
+        'Rejection notification sent for @entity_type @entity_id to @author',
+        [
+          '@entity_type' => $entity->getEntityTypeId(),
+          '@entity_id' => $entity->id(),
+          '@author' => $author->getDisplayName(),
+        ]
+      );
+    }
+
+    return $success;
   }
 
   /**
@@ -193,17 +228,21 @@ class ModerationNotifier {
    *   The mail key (submission, approval, rejection).
    * @param array $params
    *   The mail parameters.
+   *
+   * @return bool
+   *   TRUE if email was sent successfully, FALSE otherwise.
    */
-  protected function sendMail(string $to, string $key, array $params): void {
+  protected function sendMail(string $to, string $key, array $params): bool {
     if (empty($to)) {
-      return;
+      return FALSE;
     }
 
     $langcode = $this->currentUser->getPreferredLangcode();
     $send = TRUE;
 
     try {
-      $this->mailManager->mail('fns_archive', $key, $to, $langcode, $params, NULL, $send);
+      $result = $this->mailManager->mail('fns_archive', $key, $to, $langcode, $params, NULL, $send);
+      return !empty($result['result']);
     }
     catch (\Exception $e) {
       $this->loggerFactory->get('fns_archive')->error(
@@ -214,6 +253,7 @@ class ModerationNotifier {
           '@message' => $e->getMessage(),
         ]
       );
+      return FALSE;
     }
   }
 

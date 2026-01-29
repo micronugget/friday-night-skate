@@ -124,21 +124,27 @@ class ModerationNotifierTest extends UnitTestCase {
 
     $this->setupUserStorage($moderators);
 
+    $callCount = 0;
+    $emailsSent = [];
     $this->mailManager->expects($this->exactly(2))
       ->method('mail')
-      ->with(
-        'fns_archive',
-        'submission',
-        $this->logicalOr('mod1@example.com', 'mod2@example.com'),
-        'en',
-        $this->callback(function ($params) {
-          return isset($params['entity']) &&
-                 isset($params['author_name']) &&
-                 isset($params['url']);
-        })
-      );
+      ->willReturnCallback(function ($module, $key, $to, $langcode, $params) use (&$callCount, &$emailsSent) {
+        $callCount++;
+        $emailsSent[] = $to;
+        $this->assertEquals('fns_archive', $module);
+        $this->assertEquals('submission', $key);
+        $this->assertContains($to, ['mod1@example.com', 'mod2@example.com']);
+        $this->assertArrayHasKey('entity', $params);
+        $this->assertArrayHasKey('author_name', $params);
+        $this->assertArrayHasKey('url', $params);
+        return ['result' => TRUE];
+      });
 
-    $this->moderationNotifier->notifyOnSubmission($entity);
+    $result = $this->moderationNotifier->notifyOnSubmission($entity);
+    $this->assertTrue($result);
+    $this->assertCount(2, $emailsSent);
+    $this->assertContains('mod1@example.com', $emailsSent);
+    $this->assertContains('mod2@example.com', $emailsSent);
   }
 
   /**
@@ -161,9 +167,11 @@ class ModerationNotifierTest extends UnitTestCase {
                  isset($params['moderator_name']) &&
                  isset($params['url']);
         })
-      );
+      )
+      ->willReturn(['result' => TRUE]);
 
-    $this->moderationNotifier->notifyOnApproval($entity);
+    $result = $this->moderationNotifier->notifyOnApproval($entity);
+    $this->assertTrue($result);
   }
 
   /**
@@ -187,9 +195,11 @@ class ModerationNotifierTest extends UnitTestCase {
                  isset($params['reason']) &&
                  $params['reason'] === 'Needs better images';
         })
-      );
+      )
+      ->willReturn(['result' => TRUE]);
 
-    $this->moderationNotifier->notifyOnRejection($entity, 'Needs better images');
+    $result = $this->moderationNotifier->notifyOnRejection($entity, 'Needs better images');
+    $this->assertTrue($result);
   }
 
   /**
@@ -203,7 +213,40 @@ class ModerationNotifierTest extends UnitTestCase {
     $this->mailManager->expects($this->never())
       ->method('mail');
 
-    $this->moderationNotifier->notifyOnApproval($entity);
+    $result = $this->moderationNotifier->notifyOnApproval($entity);
+    $this->assertFalse($result);
+  }
+
+  /**
+   * Tests notification failure when mail sending fails.
+   *
+   * @covers ::notifyOnApproval
+   */
+  public function testNotifyReturnsFalseOnMailFailure(): void {
+    $entity = $this->createMockEntity('Test Content', 'author@example.com');
+
+    $this->mailManager->expects($this->once())
+      ->method('mail')
+      ->willReturn(['result' => FALSE]);
+
+    $result = $this->moderationNotifier->notifyOnApproval($entity);
+    $this->assertFalse($result);
+  }
+
+  /**
+   * Tests notification returns false when no moderators found.
+   *
+   * @covers ::notifyOnSubmission
+   */
+  public function testNotifySubmissionReturnsFalseWhenNoModerators(): void {
+    $entity = $this->createMockEntity('Test Content', 'test@example.com');
+    $this->setupUserStorage([]);
+
+    $this->mailManager->expects($this->never())
+      ->method('mail');
+
+    $result = $this->moderationNotifier->notifyOnSubmission($entity);
+    $this->assertFalse($result);
   }
 
   /**
@@ -214,7 +257,7 @@ class ModerationNotifierTest extends UnitTestCase {
    * @param string $authorEmail
    *   The author's email.
    *
-   * @return \Drupal\Core\Entity\ContentEntityInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\Core\Entity\ContentEntityInterface
    *   The mock entity.
    */
   protected function createMockEntity(string $label, string $authorEmail) {
@@ -242,7 +285,7 @@ class ModerationNotifierTest extends UnitTestCase {
    * @param string $email
    *   The user's email.
    *
-   * @return \Drupal\user\UserInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\user\UserInterface
    *   The mock user.
    */
   protected function createMockUser(string $email) {
