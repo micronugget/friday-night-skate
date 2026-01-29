@@ -4,16 +4,16 @@ dependencies: {  }
 name: archive_large
 label: 'Archive Large'
 effects:
-  scale:
-    uuid: scale
+  scale_image:
+    uuid: scale_image
     id: image_scale
     weight: 1
     data:
       width: 1200
       height: 900
       upscale: false
-  webp:
-    uuid: webp
+  convert_webp:
+    uuid: convert_webp
     id: image_convert
     weight: 2
     data:

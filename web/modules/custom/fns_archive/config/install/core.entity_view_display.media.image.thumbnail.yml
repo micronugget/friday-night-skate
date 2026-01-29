@@ -5,10 +5,8 @@ dependencies:
     - core.entity_view_mode.media.thumbnail
     - media.type.image
     - image.style.archive_thumbnail
-    - responsive_image.styles.archive_responsive
   module:
     - image
-    - responsive_image
 id: media.image.thumbnail
 targetEntityType: media
 bundle: image

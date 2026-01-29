@@ -361,8 +361,8 @@ ddev php -r "print_r(gd_info());"
 # Check if responsive_image module is enabled
 ddev drush pm:list | grep responsive
 
-# Check breakpoints
-ddev drush config:get fridaynightskate.breakpoints.yml
+# Check breakpoints (theme file, not config)
+cat web/themes/custom/fridaynightskate/fridaynightskate.breakpoints.yml
 
 # Verify responsive image style
 ddev drush config:get responsive_image.styles.archive_responsive

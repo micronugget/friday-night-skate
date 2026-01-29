@@ -4,16 +4,16 @@ dependencies: {  }
 name: archive_thumbnail
 label: 'Archive Thumbnail'
 effects:
-  crop:
-    uuid: crop
+  scale_and_crop:
+    uuid: scale_and_crop
     id: image_scale_and_crop
     weight: 1
     data:
       width: 400
       height: 400
       anchor: center-center
-  webp:
-    uuid: webp
+  convert_webp:
+    uuid: convert_webp
     id: image_convert
     weight: 2
     data:

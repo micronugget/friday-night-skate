@@ -4,16 +4,16 @@ dependencies: {  }
 name: archive_full
 label: 'Archive Full'
 effects:
-  scale:
-    uuid: scale
+  scale_image:
+    uuid: scale_image
     id: image_scale
     weight: 1
     data:
       width: 1920
       height: 1440
       upscale: false
-  webp:
-    uuid: webp
+  convert_webp:
+    uuid: convert_webp
     id: image_convert
     weight: 2
     data:

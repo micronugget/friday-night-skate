@@ -4,16 +4,16 @@ dependencies: {  }
 name: archive_medium
 label: 'Archive Medium'
 effects:
-  scale:
-    uuid: scale
+  scale_image:
+    uuid: scale_image
     id: image_scale
     weight: 1
     data:
       width: 800
       height: 600
       upscale: false
-  webp:
-    uuid: webp
+  convert_webp:
+    uuid: convert_webp
     id: image_convert
     weight: 2
     data:

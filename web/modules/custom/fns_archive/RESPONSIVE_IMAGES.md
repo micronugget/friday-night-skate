@@ -34,14 +34,16 @@ This implementation adds responsive image styles optimized for Bootstrap 5 break
 ### archive_responsive
 Maps image styles to Bootstrap 5 breakpoints defined in `fridaynightskate.breakpoints.yml`:
 
-| Breakpoint | 1x Multiplier | 2x Multiplier |
-|------------|---------------|---------------|
-| XS (≤575px) | archive_thumbnail | archive_medium |
-| SM (576-767px) | archive_medium | archive_large |
-| MD (768-991px) | archive_medium | archive_large |
-| LG (992-1199px) | archive_large | archive_full |
-| XL (1200-1399px) | archive_large | archive_full |
-| XXL (≥1400px) | archive_full | archive_full |
+| Breakpoint | Media Query | 1x Multiplier | 2x Multiplier |
+|------------|-------------|---------------|---------------|
+| XS | `(max-width: 575px)` | archive_thumbnail | archive_medium |
+| SM | `(min-width: 576px) and (max-width: 767px)` | archive_medium | archive_large |
+| MD | `(min-width: 768px) and (max-width: 991px)` | archive_medium | archive_large |
+| LG | `(min-width: 992px) and (max-width: 1199px)` | archive_large | archive_full |
+| XL | `(min-width: 1200px)` | archive_large | archive_full |
+| XXL | `(min-width: 1400px)` | archive_full | archive_full |
+
+*Note: XL and XXL both apply at their respective minimum widths. At 1400px+, XXL takes precedence over XL.*
 
 **Fallback:** `archive_medium` for browsers without responsive image support
 
@@ -197,7 +199,7 @@ lighthouse https://your-site.ddev.site --view
 
 ### Responsive images not loading
 1. Verify responsive_image module enabled: `ddev drush pm:list | grep responsive`
-2. Check breakpoints: `ddev drush config:get fridaynightskate.breakpoints.yml`
+2. Check breakpoints: `cat web/themes/custom/fridaynightskate/fridaynightskate.breakpoints.yml`
 3. Clear cache: `ddev drush cr`
 
 ### Lazy loading not working

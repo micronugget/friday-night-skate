@@ -77,18 +77,20 @@ Node: archive_media
 
 ### Responsive Image Breakpoint Mapping
 
-| Breakpoint | Min Width | Max Width | 1x Image | 2x Image |
-|------------|-----------|-----------|----------|----------|
-| XS | - | 575px | thumbnail (400px) | medium (800px) |
-| SM | 576px | 767px | medium (800px) | large (1200px) |
-| MD | 768px | 991px | medium (800px) | large (1200px) |
-| LG | 992px | 1199px | large (1200px) | full (1920px) |
-| XL | 1200px | 1399px | large (1200px) | full (1920px) |
-| XXL | 1400px | - | full (1920px) | full (1920px) |
+| Breakpoint | Media Query | 1x Image | 2x Image |
+|------------|-------------|----------|----------|
+| XS | `(max-width: 575px)` | thumbnail (400px) | medium (800px) |
+| SM | `(min-width: 576px) and (max-width: 767px)` | medium (800px) | large (1200px) |
+| MD | `(min-width: 768px) and (max-width: 991px)` | medium (800px) | large (1200px) |
+| LG | `(min-width: 992px) and (max-width: 1199px)` | large (1200px) | full (1920px) |
+| XL | `(min-width: 1200px)` | large (1200px) | full (1920px) |
+| XXL | `(min-width: 1400px)` | full (1920px) | full (1920px) |
+
+*Note: XL and XXL both apply at their respective minimum widths. At 1400px+, XXL takes precedence over XL.*
 
 ## 📦 Files Created/Modified
 
-### New Files (12)
+### New Configuration Files (11)
 1. `image.style.archive_thumbnail.yml` - 400x400 crop WebP style
 2. `image.style.archive_medium.yml` - 800x600 scale WebP style
 3. `image.style.archive_large.yml` - 1200x900 scale WebP style
@@ -100,9 +102,11 @@ Node: archive_media
 9. `core.entity_view_display.media.image.thumbnail.yml` - Image display config
 10. `core.entity_view_display.media.image.teaser.yml` - Image display config
 11. `core.entity_view_display.media.image.modal.yml` - Image display config with responsive
-12. `RESPONSIVE_IMAGES.md` - Implementation documentation
-13. `TESTING_RESPONSIVE_IMAGES.md` - Testing guide
-14. `IMPLEMENTATION_SUMMARY_RESPONSIVE_IMAGES.md` - This file
+
+### New Documentation Files (3)
+1. `RESPONSIVE_IMAGES.md` - Implementation documentation
+2. `TESTING_RESPONSIVE_IMAGES.md` - Testing guide
+3. `IMPLEMENTATION_SUMMARY_RESPONSIVE_IMAGES.md` - This file
 
 ### Modified Files (4)
 1. `fns_archive.info.yml` - Added image & responsive_image dependencies
