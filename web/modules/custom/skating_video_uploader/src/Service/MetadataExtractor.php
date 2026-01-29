@@ -468,10 +468,17 @@ class MetadataExtractor {
       return (float) $rational;
     }
 
-    if (is_string($rational) && str_contains($rational, '/')) {
-      $parts = explode('/', $rational);
-      if (count($parts) === 2 && $parts[1] !== '0') {
-        return (float) $parts[0] / (float) $parts[1];
+    if (is_string($rational)) {
+      // Check if it's a rational number (e.g., "1/60").
+      if (str_contains($rational, '/')) {
+        $parts = explode('/', $rational);
+        if (count($parts) === 2 && $parts[1] !== '0') {
+          return (float) $parts[0] / (float) $parts[1];
+        }
+      }
+      // It's a plain string number.
+      else {
+        return (float) $rational;
       }
     }
 
