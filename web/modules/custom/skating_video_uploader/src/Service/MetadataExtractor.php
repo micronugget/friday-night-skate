@@ -134,14 +134,10 @@ class MetadataExtractor {
     // Escape the file path for shell command.
     $escaped_path = escapeshellarg($file_path);
 
-    // Check if we're running in DDEV environment.
-    $is_ddev = getenv('IS_DDEV_PROJECT') === 'true';
-    
-    // Build the ffprobe command.
-    $ffprobe_cmd = "ffprobe -v quiet -print_format json -show_format -show_streams {$escaped_path} 2>&1";
-    
-    // Prefix with ddev exec if in DDEV.
-    $command = $is_ddev ? "ddev exec {$ffprobe_cmd}" : $ffprobe_cmd;
+    // Run ffprobe to get metadata in JSON format.
+    // Note: When Drupal runs in DDEV, PHP code already executes inside the container,
+    // so we don't need 'ddev exec' prefix. The command runs directly in the container.
+    $command = "ffprobe -v quiet -print_format json -show_format -show_streams {$escaped_path} 2>&1";
     
     $output = shell_exec($command);
 
