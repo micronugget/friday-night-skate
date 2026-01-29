@@ -70,3 +70,14 @@ masonry-archive:
     - core/drupal
     - core/once
     - core/drupalSettings
+
+modal-viewer:
+  css:
+    theme:
+      build/css/main.style.css: {}
+  js:
+    build/js/modal-viewer.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupalSettings

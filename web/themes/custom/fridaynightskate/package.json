@@ -45,6 +45,7 @@
 	},
 	"dependencies": {
 		"imagesloaded": "^5.0.0",
-		"masonry-layout": "^4.2.2"
+		"masonry-layout": "^4.2.2",
+		"swiper": "^12.1.0"
 	}
 }
