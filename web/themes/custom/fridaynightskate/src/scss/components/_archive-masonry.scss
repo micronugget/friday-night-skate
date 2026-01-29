@@ -1,0 +1,180 @@
+/**
+ * Archive Masonry Grid Layout
+ * Responsive grid with Bootstrap 5 breakpoints
+ */
+
+.masonry-grid {
+  margin: 0 -8px; // Negative margin for gutter compensation
+
+  // Clearfix
+  &::after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+}
+
+// Column sizer for responsive layout
+.masonry-sizer {
+  width: 100%;
+
+  // xs: 1 column (< 576px)
+  @media (max-width: 575.98px) {
+    width: 100%;
+  }
+
+  // sm: 2 columns (≥ 576px)
+  @media (min-width: 576px) and (max-width: 767.98px) {
+    width: calc(50% - 16px);
+  }
+
+  // md: 3 columns (≥ 768px)
+  @media (min-width: 768px) and (max-width: 991.98px) {
+    width: calc(33.333% - 16px);
+  }
+
+  // lg: 4 columns (≥ 992px)
+  @media (min-width: 992px) and (max-width: 1199.98px) {
+    width: calc(25% - 16px);
+  }
+
+  // xl: 5 columns (≥ 1200px)
+  @media (min-width: 1200px) {
+    width: calc(20% - 16px);
+  }
+}
+
+// Grid items
+.masonry-item {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 0 8px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: var(--bs-light, #f8f9fa);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  // Responsive widths matching sizer
+  // xs: 1 column (< 576px)
+  @media (max-width: 575.98px) {
+    width: 100%;
+  }
+
+  // sm: 2 columns (≥ 576px)
+  @media (min-width: 576px) and (max-width: 767.98px) {
+    width: 50%;
+  }
+
+  // md: 3 columns (≥ 768px)
+  @media (min-width: 768px) and (max-width: 991.98px) {
+    width: 33.333%;
+  }
+
+  // lg: 4 columns (≥ 992px)
+  @media (min-width: 992px) and (max-width: 1199.98px) {
+    width: 25%;
+  }
+
+  // xl: 5 columns (≥ 1200px)
+  @media (min-width: 1200px) {
+    width: 20%;
+  }
+
+  // Inner content wrapper
+  .masonry-item__content {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    background-color: var(--bs-white, #fff);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  // Hover effects
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+
+    .masonry-item__content img {
+      transform: scale(1.05);
+    }
+
+    .masonry-item__metadata-icon {
+      opacity: 1;
+    }
+  }
+
+  // Metadata icon overlay (lower-right corner)
+  .masonry-item__metadata-icon {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: var(--bs-white, #fff);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+
+    &::before {
+      content: '\1F4CD'; // 📍 emoji for location
+      font-size: 16px;
+    }
+
+    &[data-has-video="true"]::before {
+      content: '\25B6'; // ▶ play icon
+    }
+  }
+
+  // Lazy loading placeholder
+  &.masonry-item--loading {
+    background: linear-gradient(
+      90deg,
+      var(--bs-light, #f8f9fa) 0%,
+      var(--bs-secondary-bg, #e9ecef) 50%,
+      var(--bs-light, #f8f9fa) 100%
+    );
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+  }
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Link wrapper (no underline)
+.masonry-item a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+}
+
+// Accessibility: Focus state
+.masonry-item:focus-within {
+  outline: 3px solid var(--bs-primary, #0d6efd);
+  outline-offset: 2px;
+}
