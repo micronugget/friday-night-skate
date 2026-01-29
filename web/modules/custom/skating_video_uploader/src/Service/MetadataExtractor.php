@@ -14,7 +14,7 @@ use Drupal\videojs_media\VideoJsMediaInterface;
 use Exception;
 
 /**
- * Service for extracting metadata from video files.
+ * Service for extracting metadata from video and image files.
  */
 class MetadataExtractor {
 
@@ -26,9 +26,9 @@ class MetadataExtractor {
   protected $entityTypeManager;
 
   /**
-   * The logger factory.
+   * The logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
   protected $loggerFactory;
 
@@ -446,6 +446,11 @@ class MetadataExtractor {
    *   The coordinate in decimal degrees.
    */
   protected function convertGpsCoordinate(array $coordinate): float {
+    // Validate array has required elements.
+    if (count($coordinate) < 3) {
+      return 0.0;
+    }
+
     $degrees = $this->convertExifRational($coordinate[0]);
     $minutes = $this->convertExifRational($coordinate[1]);
     $seconds = $this->convertExifRational($coordinate[2]);
@@ -456,8 +461,8 @@ class MetadataExtractor {
   /**
    * Converts EXIF rational number to float.
    *
-   * @param string|float $rational
-   *   The rational number in "numerator/denominator" format or a float.
+   * @param string|float|int $rational
+   *   The rational number in "numerator/denominator" format or a numeric value.
    *
    * @return float
    *   The decimal value.
@@ -469,7 +474,7 @@ class MetadataExtractor {
 
     if (is_string($rational) && str_contains($rational, '/')) {
       $parts = explode('/', $rational);
-      if (count($parts) === 2 && $parts[1] != 0) {
+      if (count($parts) === 2 && $parts[1] !== '0') {
         return (float) $parts[0] / (float) $parts[1];
       }
     }

@@ -209,6 +209,27 @@ class MetadataExtractorTest extends UnitTestCase {
   }
 
   /**
+   * Tests GPS coordinate conversion with malformed data.
+   *
+   * @covers ::convertGpsCoordinate
+   * @group metadata
+   */
+  public function testConvertGpsCoordinateMalformed() {
+    $method = new \ReflectionMethod($this->metadataExtractor, 'convertGpsCoordinate');
+    $method->setAccessible(TRUE);
+
+    // Test with incomplete array.
+    $coordinate = ['37/1', '46/1'];
+    $result = $method->invoke($this->metadataExtractor, $coordinate);
+    $this->assertEquals(0.0, $result);
+
+    // Test with empty array.
+    $coordinate = [];
+    $result = $method->invoke($this->metadataExtractor, $coordinate);
+    $this->assertEquals(0.0, $result);
+  }
+
+  /**
    * Tests EXIF rational number conversion.
    *
    * @covers ::convertExifRational
@@ -385,7 +406,9 @@ class MetadataExtractorTest extends UnitTestCase {
     $node->method('hasField')->with('field_metadata')->willReturn(TRUE);
     $node->expects($this->once())
       ->method('set')
-      ->with('field_metadata', $this->isJson());
+      ->with('field_metadata', $this->callback(function($value) {
+        return is_string($value) && json_decode($value) !== NULL;
+      }));
     $node->method('get')->with('field_metadata')->willReturn($field_item_list);
 
     $result = $this->metadataExtractor->storeMetadata($node, $metadata);
