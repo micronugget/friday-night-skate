@@ -5,12 +5,45 @@ This module provides the foundational content architecture for the Friday Night 
 
 ## Features
 
+### Content Moderation Workflow
+- **Workflow name:** Archive Review
+- **States:** Draft, In Review, Published, Archived
+- **Roles:** Skater (uploader), Moderator (reviewer)
+- **Email notifications:** Automatic notifications on submission, approval, and rejection
+- **Dashboard:** Moderation queue for reviewers at `/admin/content/moderation`
+- **User view:** Personal content management at `/user/my-archive-content`
+
+See [MODERATION_WORKFLOW.md](./MODERATION_WORKFLOW.md) for complete documentation.
+
 ### Taxonomy Vocabulary: Skate Dates
 - **Machine name:** `skate_dates`
 - **Format:** "YYYY-MM-DD - Location/Description"
 - **Purpose:** Organize archive media by skate session date and location
 - **Hierarchical:** No
 - **Multiple values per node:** No
+
+### Views
+
+#### Archive by Skate Date
+- **Machine name:** `archive_by_date`
+- **Path:** `/archive/%` (where % is the taxonomy term ID)
+- **Purpose:** Display archive media filtered by Skate Date taxonomy term
+- **Display:** Page with Masonry grid layout (unformatted list)
+- **Items per page:** 50 with pagination
+- **Contextual filter:** Skate Date taxonomy term
+- **Filters:** Archive Media content type, Published status only, Published moderation state
+- **Sort:** By field_timestamp DESC (newest first)
+- **Row style:** Rendered entity using "thumbnail" view mode
+
+**Usage Examples:**
+- `/archive/123` - Display all media for skate date term ID 123
+- Title automatically overridden with taxonomy term name
+- Empty state message with link back to archive index
+
+**Integration:** Designed for Masonry.js grid layout with:
+- Unformatted list format (no views-specific wrapper classes)
+- `.masonry-item` row class for JavaScript targeting
+- Thumbnail view mode for consistent media display
 
 ### Content Type: Archive Media
 - **Machine name:** `archive_media`
@@ -64,6 +97,13 @@ This module is installed automatically when enabled. On installation, it creates
 ### Auto-population
 The module implements `hook_node_presave()` to automatically populate:
 - **Uploader field** with the current user when creating new archive_media nodes
+- **Moderation state tracking** for triggering workflow notifications
+
+### Hooks Implemented
+- `hook_ENTITY_TYPE_presave()` - Track moderation state changes
+- `hook_ENTITY_TYPE_insert()` - Handle new content notifications
+- `hook_ENTITY_TYPE_update()` - Trigger workflow transition notifications
+- `hook_mail()` - Email templates for moderation notifications
 
 ### Update Hook
 The module includes `fns_archive_update_10001()` to install all configurations on existing sites.
@@ -78,6 +118,8 @@ The module includes `fns_archive_update_10001()` to install all configurations o
 - media
 - geofield
 - pathauto
+- content_moderation
+- workflows
 
 ## Maintainers
 - Friday Night Skate development team
