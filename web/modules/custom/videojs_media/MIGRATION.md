@@ -2,7 +2,7 @@
 
 ## ⚠️ Migration Status Update
 
-**As of January 2025:**
+**As of January 2026:**
 
 - ✅ **videojs_mediablock has been removed** from `composer.json`
 - ✅ **All code now uses videojs_media** exclusively
