@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 
 /**
  * Implements hook_ENTITY_TYPE_presave() for node entities.
@@ -33,5 +34,141 @@ function fns_archive_node_presave(EntityInterface $node): void {
       $current_user = \Drupal::currentUser();
       $node->set('field_uploader', $current_user->id());
     }
+  }
+
+  // Handle moderation state transitions for notifications.
+  if ($node->hasField('moderation_state')) {
+    $original_state = $node->original->moderation_state->value ?? NULL;
+    $new_state = $node->moderation_state->value ?? NULL;
+
+    // Track state change for post-save processing.
+    if ($original_state !== $new_state) {
+      $node->fnsArchiveModerationChange = [
+        'from' => $original_state,
+        'to' => $new_state,
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node entities.
+ *
+ * Sends notifications when new archive_media content is submitted for review.
+ */
+function fns_archive_node_insert(EntityInterface $node): void {
+  if (!$node instanceof NodeInterface || $node->bundle() !== 'archive_media') {
+    return;
+  }
+
+  // Check if node was created in review state.
+  if ($node->hasField('moderation_state')) {
+    $state = $node->moderation_state->value;
+    if ($state === 'review') {
+      \Drupal::service('fns_archive.moderation_notifier')
+        ->notifyOnSubmission($node);
+    }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for node entities.
+ *
+ * Sends notifications based on moderation state transitions.
+ */
+function fns_archive_node_update(EntityInterface $node): void {
+  if (!$node instanceof NodeInterface || $node->bundle() !== 'archive_media') {
+    return;
+  }
+
+  // Check for moderation state change tracked in presave.
+  if (isset($node->fnsArchiveModerationChange)) {
+    $change = $node->fnsArchiveModerationChange;
+    $notifier = \Drupal::service('fns_archive.moderation_notifier');
+
+    // Notify on submission for review.
+    if ($change['to'] === 'review' && $change['from'] !== 'review') {
+      $notifier->notifyOnSubmission($node);
+    }
+
+    // Notify on publication.
+    if ($change['to'] === 'published' && $change['from'] !== 'published') {
+      $notifier->notifyOnApproval($node);
+    }
+
+    // Notify on rejection (sent back to draft from review).
+    if ($change['to'] === 'draft' && $change['from'] === 'review') {
+      $reason = $node->revision_log->value ?? '';
+      $notifier->notifyOnRejection($node, $reason);
+    }
+  }
+}
+
+/**
+ * Implements hook_mail().
+ *
+ * Defines email templates for moderation notifications.
+ */
+function fns_archive_mail(string $key, array &$message, array $params): void {
+  $site_name = \Drupal::config('system.site')->get('name');
+  $entity_label = $params['entity_label'] ?? 'Content';
+
+  switch ($key) {
+    case 'submission':
+      $message['subject'] = t('[@site] New content submitted for review: @title', [
+        '@site' => $site_name,
+        '@title' => $entity_label,
+      ]);
+      $message['body'][] = t('Hello,');
+      $message['body'][] = '';
+      $message['body'][] = t('New content "@title" has been submitted for review by @author.', [
+        '@title' => $entity_label,
+        '@author' => $params['author_name'] ?? 'Unknown',
+      ]);
+      $message['body'][] = '';
+      $message['body'][] = t('View and moderate: @url', [
+        '@url' => $params['url'] ?? '',
+      ]);
+      break;
+
+    case 'approval':
+      $message['subject'] = t('[@site] Your content has been approved: @title', [
+        '@site' => $site_name,
+        '@title' => $entity_label,
+      ]);
+      $message['body'][] = t('Hello,');
+      $message['body'][] = '';
+      $message['body'][] = t('Your content "@title" has been approved and published by @moderator.', [
+        '@title' => $entity_label,
+        '@moderator' => $params['moderator_name'] ?? 'a moderator',
+      ]);
+      $message['body'][] = '';
+      $message['body'][] = t('View your content: @url', [
+        '@url' => $params['url'] ?? '',
+      ]);
+      break;
+
+    case 'rejection':
+      $message['subject'] = t('[@site] Your content needs revision: @title', [
+        '@site' => $site_name,
+        '@title' => $entity_label,
+      ]);
+      $message['body'][] = t('Hello,');
+      $message['body'][] = '';
+      $message['body'][] = t('Your content "@title" has been sent back to draft by @moderator.', [
+        '@title' => $entity_label,
+        '@moderator' => $params['moderator_name'] ?? 'a moderator',
+      ]);
+      if (!empty($params['reason'])) {
+        $message['body'][] = '';
+        $message['body'][] = t('Reason: @reason', [
+          '@reason' => $params['reason'],
+        ]);
+      }
+      $message['body'][] = '';
+      $message['body'][] = t('Edit your content: @url', [
+        '@url' => $params['url'] ?? '',
+      ]);
+      break;
   }
 }
