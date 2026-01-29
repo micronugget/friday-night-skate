@@ -13,11 +13,6 @@
         "drupal": {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
-        },
-        "videojs_mediablock": {
-            "type": "git",
-            "url": "https://git.drupalcode.org/project/videojs_mediablock.git",
-            "reference": "2.3.x"
         }
     },
     "require": {
@@ -46,7 +41,6 @@
         "drupal/project_browser": "^2.1@beta",
         "drupal/radix": "^6.0",
         "drupal/recipe_installer_kit": "^1-alpha6@alpha",
-        "drupal/videojs_mediablock": "^2.3",
         "drupal/webform": "^6.3@beta",
         "google/apiclient": "^2.15",
         "php-ffmpeg/php-ffmpeg": "^1.1"
