@@ -2,6 +2,22 @@
 
 A Drupal CMS 2 (Drupal 11) platform for the Friday Night Skate community to upload, organize, and share images and videos from skate sessions.
 
+## 🚨 For GitHub Copilot Agents
+
+**CRITICAL: Before starting any work on this repository, you MUST set up the DDEV environment:**
+
+```bash
+# Check if setup is needed
+bash .github/check-setup.sh
+
+# Run automated setup if needed
+bash .github/copilot-setup.sh
+```
+
+See [.github/README.md](.github/README.md) for complete setup instructions.
+
+---
+
 ## 🎨 Featured: Archive Feature
 
 This repository includes a comprehensive implementation plan for the **Friday Night Skate Archive** - a community-driven media archive system.

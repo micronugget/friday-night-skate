@@ -1,5 +1,42 @@
 # Friday Night Skate - Project Foundation & Standards
 
+## 0. CRITICAL: Environment Setup (First Step)
+
+**⚠️ BEFORE STARTING ANY WORK: You MUST set up the DDEV environment.**
+
+This project requires DDEV to be installed and running. All commands (Drush, Composer, PHPUnit) must be executed via `ddev`.
+
+### Automated Setup
+Run this command **FIRST** when starting work on this repository:
+
+```bash
+bash .github/copilot-setup.sh
+```
+
+This script will:
+- Install DDEV (if not present)
+- Configure the project
+- Start DDEV containers
+- Install all dependencies
+- Set up Drupal
+- Enable required modules
+
+### Manual Setup Alternative
+If the automated script fails, follow the steps in `.github/copilot-setup-steps.yml` manually.
+
+### Verification
+After setup, verify DDEV is working:
+
+```bash
+ddev --version          # Should show DDEV version
+ddev describe           # Should show project details
+ddev drush status       # Should show Drupal is installed
+```
+
+**❌ DO NOT proceed without completing this setup step!**
+
+---
+
 ## 1. Project Context
 - **System:** Drupal 11 / Drupal CMS 2
 - **Theming:** Radix 6 (Bootstrap 5 subtheme)
