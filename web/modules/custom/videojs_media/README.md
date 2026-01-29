@@ -411,6 +411,134 @@ GET /jsonapi/videojs_media/youtube
 POST /jsonapi/videojs_media/local_video
 ```
 
+## Testing
+
+The VideoJS Media module includes a comprehensive test suite covering all functionality.
+
+### Running Tests
+
+#### Run All Tests
+
+```bash
+ddev phpunit web/modules/custom/videojs_media
+```
+
+#### Run Tests by Type
+
+```bash
+# Unit tests only (fast, isolated tests)
+ddev phpunit web/modules/custom/videojs_media/tests/src/Unit/
+
+# Kernel tests only (database-backed tests)
+ddev phpunit web/modules/custom/videojs_media/tests/src/Kernel/
+
+# Functional tests only (full browser tests)
+ddev phpunit web/modules/custom/videojs_media/tests/src/Functional/
+```
+
+#### Run Specific Test File
+
+```bash
+ddev phpunit web/modules/custom/videojs_media/tests/src/Kernel/VideoJsMediaCrudTest.php
+```
+
+#### Generate Coverage Report
+
+```bash
+ddev phpunit --coverage-html coverage-report web/modules/custom/videojs_media
+```
+
+Coverage report will be generated in `coverage-report/` directory.
+
+### Test Coverage
+
+The module includes **65 test methods** across **11 test files** with **~2,000 lines of test code**.
+
+#### Unit Tests (2 files)
+- **VideoJsMediaTest**: Tests entity methods (getName, setName, isPublished, etc.)
+- **VideoJsMediaTypeTest**: Tests bundle configuration entity methods
+
+#### Kernel Tests (4 files)
+- **VideoJsMediaCrudTest**: Tests Create, Read, Update, Delete operations for all 5 bundles
+- **VideoJsMediaAccessTest**: Tests access control for all operations and permission types
+- **VideoJsMediaFieldTest**: Tests bundle-specific field configurations
+- **VideoJsMediaYoutubeTest**: Tests YouTube-specific functionality and URL format handling
+
+#### Functional Tests (5 files)
+- **VideoJsMediaListTest**: Tests the entity collection/list page
+- **VideoJsMediaFormTest**: Tests add/edit forms for all bundles
+- **VideoJsMediaBlockTest**: Tests the VideoJS Media Block plugin
+- **VideoJsMediaPlayerRenderingTest**: Tests rendering in different view modes
+- **VideoJsMediaPermissionsTest**: Tests granular per-bundle permissions
+
+### Coverage Areas
+
+✅ **Entity Operations**: CRUD, revisions, translations  
+✅ **Access Control**: Admin, view, edit, delete permissions per bundle  
+✅ **User Interface**: List pages, forms, validation  
+✅ **Block Plugin**: Configuration, rendering, caching  
+✅ **Media Types**: All 5 bundles (local_video, local_audio, remote_video, remote_audio, youtube)  
+✅ **Field Integration**: All bundle-specific fields  
+✅ **Rendering**: Default and teaser view modes  
+✅ **Permissions**: Owner-based and bundle-based access control
+
+### Adding New Tests
+
+When adding new functionality, create corresponding tests:
+
+1. **Unit tests** for isolated logic (entity methods, calculations)
+2. **Kernel tests** for database operations and entity API
+3. **Functional tests** for user-facing features and forms
+
+Example test structure:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\Tests\videojs_media\Kernel;
+
+use Drupal\KernelTests\KernelTestBase;
+use Drupal\videojs_media\Entity\VideoJsMedia;
+
+/**
+ * Tests for custom feature.
+ *
+ * @group videojs_media
+ */
+class CustomFeatureTest extends KernelTestBase {
+
+  protected static $modules = ['videojs_media', 'user', 'system'];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    parent::setUp();
+    $this->installEntitySchema('videojs_media');
+    $this->installEntitySchema('user');
+  }
+
+  /**
+   * Test your feature.
+   */
+  public function testCustomFeature(): void {
+    $media = VideoJsMedia::create(['type' => 'local_video', 'name' => 'Test']);
+    $media->save();
+    
+    $this->assertNotNull($media->id());
+  }
+
+}
+```
+
+### Continuous Integration
+
+Tests are automatically run on every commit via GitHub Actions. All tests must pass before code can be merged.
+
+For more details, see [tests/TEST_SUMMARY.md](tests/TEST_SUMMARY.md).
+
 ## Maintaining VideoJS Libraries
 
 This module includes all necessary VideoJS libraries in its `node_modules/` directory. To keep them up-to-date:

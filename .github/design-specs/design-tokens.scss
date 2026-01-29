@@ -1,0 +1,360 @@
+/**
+ * FNS Modal Viewer - Design Tokens
+ * 
+ * Copy these variables into:
+ * web/themes/custom/fridaynightskate/src/scss/base/_variables.scss
+ * 
+ * Designer: UX/UI Designer Agent
+ * Date: January 2025
+ * Reference: modal-viewer-swiper-ux-ui.md
+ */
+
+// =============================================================================
+// MODAL VIEWER - COLOR TOKENS
+// =============================================================================
+
+// Background & Overlay
+$modal-overlay-bg: rgba(10, 10, 15, 0.95) !default;      // Deep night navy with high opacity
+$modal-backdrop-blur: 8px !default;                       // Subtle backdrop blur
+$modal-content-bg: #0a0a0f !default;                      // Near-black for main content
+$modal-panel-bg: rgba(20, 20, 28, 0.92) !default;        // Slightly lighter for metadata panel
+
+// Accent Colors (Neon-inspired, tasteful)
+$modal-accent-primary: #00ff9f !default;                  // Electric teal (location pins, active states)
+$modal-accent-secondary: #ff006e !default;                // Hot pink (video indicators)
+$modal-accent-tertiary: #ffd60a !default;                 // Street light yellow (warnings, focus)
+
+// Text Colors
+$modal-text-primary: #f8f9fa !default;                    // High contrast white
+$modal-text-secondary: rgba(248, 249, 250, 0.7) !default; // Dimmed white for metadata
+$modal-text-muted: rgba(248, 249, 250, 0.45) !default;    // Very dim for timestamps
+
+// Interactive Elements
+$modal-button-bg: rgba(248, 249, 250, 0.08) !default;     // Transparent button base
+$modal-button-hover-bg: rgba(248, 249, 250, 0.15) !default; // Hover state
+$modal-button-active-bg: rgba(248, 249, 250, 0.25) !default; // Active/pressed state
+
+// Navigation
+$swiper-nav-bg: rgba(0, 255, 159, 0.1) !default;          // Subtle teal glow
+$swiper-nav-border: rgba(0, 255, 159, 0.3) !default;      // Teal border
+$swiper-nav-hover: rgba(0, 255, 159, 0.2) !default;       // Hover glow
+
+// Focus/Accessibility
+$modal-focus-ring-color: $modal-accent-tertiary !default; // Yellow focus ring
+$modal-focus-ring-width: 3px !default;
+$modal-focus-ring-offset: 2px !default;
+
+
+// =============================================================================
+// MODAL VIEWER - TYPOGRAPHY TOKENS
+// =============================================================================
+
+// Font Families
+$modal-font-display: 'Staatliches', Impact, 'Franklin Gothic Bold', sans-serif !default;
+$modal-font-body: 'Archivo', 'Segoe UI', system-ui, sans-serif !default;
+
+// Font Sizes
+$modal-title-size: clamp(1.5rem, 4vw, 2rem) !default;     // 24px-32px responsive
+$modal-nav-label-size: 1rem !default;                     // 16px
+$modal-metadata-label-size: 0.875rem !default;            // 14px
+$modal-body-size: 1rem !default;                          // 16px
+$modal-small-size: 0.875rem !default;                     // 14px
+$modal-micro-size: 0.75rem !default;                      // 12px
+
+// Font Weights
+$modal-font-weight-normal: 400 !default;
+$modal-font-weight-medium: 500 !default;
+$modal-font-weight-semibold: 600 !default;
+
+// Line Heights
+$modal-line-height-tight: 1.2 !default;
+$modal-line-height-normal: 1.5 !default;
+$modal-line-height-loose: 1.8 !default;
+
+// Letter Spacing
+$modal-letter-spacing-tight: 0.5px !default;
+$modal-letter-spacing-normal: 1px !default;
+$modal-letter-spacing-wide: 1.5px !default;
+
+
+// =============================================================================
+// MODAL VIEWER - SPACING TOKENS
+// =============================================================================
+
+// Based on Bootstrap 5 spacer values
+$modal-space-xs: 0.25rem !default;   // 4px
+$modal-space-sm: 0.5rem !default;    // 8px
+$modal-space-md: 1rem !default;      // 16px
+$modal-space-lg: 1.5rem !default;    // 24px
+$modal-space-xl: 2rem !default;      // 32px
+$modal-space-xxl: 3rem !default;     // 48px
+
+// Component-Specific Spacing
+$modal-padding-mobile: 0 !default;
+$modal-padding-tablet: 16px !default;
+$modal-padding-desktop: 24px !default;
+$modal-padding-desktop-xl: 32px !default;
+
+$modal-close-position-mobile: 12px !default;
+$modal-close-position-desktop: 20px !default;
+
+$modal-metadata-panel-max-height-mobile: 280px !default;
+$modal-metadata-panel-max-height-desktop: 320px !default;
+
+
+// =============================================================================
+// MODAL VIEWER - SIZING TOKENS
+// =============================================================================
+
+// Touch Targets (WCAG AAA)
+$modal-touch-target-min: 44px !default;
+$modal-touch-target-preferred: 48px !default;
+
+// Component Sizes
+$modal-close-button-size: 48px !default;
+$modal-nav-arrow-size: 56px !default;
+$modal-pagination-dot-size: 10px !default;
+$modal-pagination-dot-size-mobile: 12px !default;
+$modal-pagination-dot-active-width: 28px !default;
+$modal-pagination-dot-active-width-mobile: 32px !default;
+$modal-metadata-toggle-width: 200px !default;
+$modal-metadata-toggle-height: 44px !default;
+
+// VideoJS Sizes
+$videojs-play-button-size: 80px !default;
+
+
+// =============================================================================
+// MODAL VIEWER - ANIMATION TOKENS
+// =============================================================================
+
+// Transition Durations
+$modal-transition-instant: 0.1s !default;
+$modal-transition-fast: 0.2s !default;
+$modal-transition-normal: 0.3s !default;
+$modal-transition-medium: 0.4s !default;
+$modal-transition-slow: 0.5s !default;
+$modal-transition-slower: 0.6s !default;
+
+// Specific Animation Timings
+$modal-open-duration: 0.25s !default;
+$modal-close-duration: 0.2s !default;
+$swiper-transition-duration: 0.4s !default;
+$metadata-panel-open-duration: 0.4s !default;
+$metadata-panel-close-duration: 0.3s !default;
+$close-button-rotation-duration: 0.3s !default;
+
+// Easing Functions
+$modal-ease-in: ease-in !default;
+$modal-ease-out: ease-out !default;
+$modal-ease-in-out: ease-in-out !default;
+$modal-ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1) !default;
+$modal-ease-decelerate: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$modal-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55) !default;
+
+
+// =============================================================================
+// MODAL VIEWER - BORDER RADIUS TOKENS
+// =============================================================================
+
+$modal-border-radius-sm: 4px !default;
+$modal-border-radius-md: 8px !default;
+$modal-border-radius-lg: 12px !default;
+$modal-border-radius-pill: 9999px !default;  // Fully rounded (circles/pills)
+
+
+// =============================================================================
+// MODAL VIEWER - SHADOW TOKENS
+// =============================================================================
+
+$modal-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1) !default;
+$modal-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15) !default;
+$modal-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2) !default;
+$modal-shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.25) !default;
+
+// Glow Effects
+$modal-glow-primary: 0 0 16px rgba(0, 255, 159, 0.3) !default;   // Teal glow
+$modal-glow-secondary: 0 0 32px rgba(255, 0, 110, 0.6) !default; // Pink glow
+$modal-glow-tertiary: 0 0 16px rgba(255, 214, 10, 0.5) !default; // Yellow glow
+
+
+// =============================================================================
+// MODAL VIEWER - Z-INDEX TOKENS
+// =============================================================================
+
+$modal-z-index-slides: 1 !default;
+$modal-z-index-navigation: 10 !default;
+$modal-z-index-metadata-panel: 14 !default;
+$modal-z-index-metadata-toggle: 15 !default;
+$modal-z-index-modal-content: 1050 !default;  // Bootstrap default
+$modal-z-index-backdrop: 1055 !default;       // Bootstrap default
+$modal-z-index-close-button: 1060 !default;
+
+
+// =============================================================================
+// MODAL VIEWER - BREAKPOINT TOKENS
+// (Reference only - use Bootstrap 5 breakpoint mixins)
+// =============================================================================
+
+// Bootstrap 5 Breakpoints (from fridaynightskate.breakpoints.yml)
+// XS: < 576px (Mobile - PRIMARY)
+// SM: 576px - 767px (Large mobile)
+// MD: 768px - 991px (Tablet)
+// LG: 992px - 1199px (Desktop)
+// XL: ≥ 1200px (Large desktop)
+// XXL: ≥ 1400px (Ultra-wide)
+
+$modal-breakpoint-xs-max: 575.98px !default;
+$modal-breakpoint-sm-min: 576px !default;
+$modal-breakpoint-sm-max: 767.98px !default;
+$modal-breakpoint-md-min: 768px !default;
+$modal-breakpoint-md-max: 991.98px !default;
+$modal-breakpoint-lg-min: 992px !default;
+$modal-breakpoint-lg-max: 1199.98px !default;
+$modal-breakpoint-xl-min: 1200px !default;
+$modal-breakpoint-xxl-min: 1400px !default;
+
+
+// =============================================================================
+// MODAL VIEWER - CSS CUSTOM PROPERTIES (CSS Variables)
+// Use these in _modal-viewer.scss for runtime theming support
+// =============================================================================
+
+:root {
+  // Colors
+  --modal-overlay-bg: #{$modal-overlay-bg};
+  --modal-content-bg: #{$modal-content-bg};
+  --modal-panel-bg: #{$modal-panel-bg};
+  --modal-accent-primary: #{$modal-accent-primary};
+  --modal-accent-secondary: #{$modal-accent-secondary};
+  --modal-accent-tertiary: #{$modal-accent-tertiary};
+  --modal-text-primary: #{$modal-text-primary};
+  --modal-text-secondary: #{$modal-text-secondary};
+  --modal-text-muted: #{$modal-text-muted};
+  --modal-button-bg: #{$modal-button-bg};
+  --modal-button-hover-bg: #{$modal-button-hover-bg};
+  --modal-button-active-bg: #{$modal-button-active-bg};
+  --swiper-nav-bg: #{$swiper-nav-bg};
+  --swiper-nav-border: #{$swiper-nav-border};
+  --swiper-nav-hover: #{$swiper-nav-hover};
+  
+  // Typography
+  --modal-font-display: #{$modal-font-display};
+  --modal-font-body: #{$modal-font-body};
+  
+  // Spacing
+  --modal-space-xs: #{$modal-space-xs};
+  --modal-space-sm: #{$modal-space-sm};
+  --modal-space-md: #{$modal-space-md};
+  --modal-space-lg: #{$modal-space-lg};
+  --modal-space-xl: #{$modal-space-xl};
+  --modal-space-xxl: #{$modal-space-xxl};
+  
+  // Focus
+  --modal-focus-ring: #{$modal-focus-ring-width} solid #{$modal-focus-ring-color};
+  --modal-focus-offset: #{$modal-focus-ring-offset};
+  
+  // Backdrop
+  --modal-backdrop-blur: #{$modal-backdrop-blur};
+}
+
+
+// =============================================================================
+// GOOGLE FONTS IMPORT
+// Add this to the top of main.style.scss or in <head> of HTML
+// =============================================================================
+
+// @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Staatliches&display=swap');
+
+
+// =============================================================================
+// USAGE EXAMPLES
+// =============================================================================
+
+/*
+// Example: Close Button
+.fns-modal-close {
+  width: $modal-close-button-size;
+  height: $modal-close-button-size;
+  background: var(--modal-button-bg);
+  border: 2px solid var(--modal-accent-tertiary);
+  border-radius: $modal-border-radius-pill;
+  color: var(--modal-text-primary);
+  transition: all $modal-transition-fast $modal-ease-out;
+  
+  &:hover {
+    background: var(--modal-button-hover-bg);
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: $modal-glow-primary;
+  }
+}
+
+// Example: Metadata Label
+.metadata-label {
+  font-family: var(--modal-font-display);
+  font-size: $modal-metadata-label-size;
+  letter-spacing: $modal-letter-spacing-normal;
+  text-transform: uppercase;
+  color: var(--modal-accent-primary);
+}
+
+// Example: Responsive Breakpoint
+@media (max-width: $modal-breakpoint-md-max) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: none; // Hide navigation arrows on mobile/tablet
+  }
+}
+
+// Example: Animation
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal.show .modal-dialog {
+  animation: fadeIn $modal-open-duration $modal-ease-out;
+}
+*/
+
+
+// =============================================================================
+// NOTES FOR THEMER
+// =============================================================================
+
+// 1. Import Order:
+//    - Import this file AFTER Bootstrap variables
+//    - Import component SCSS files AFTER this file
+//
+// 2. CSS Variables:
+//    - Use CSS custom properties (var(--)) in component styles
+//    - Allows runtime theming and easier maintenance
+//
+// 3. Breakpoints:
+//    - Use Bootstrap 5 breakpoint mixins when possible
+//    - Reference tokens for custom media queries
+//
+// 4. Color Consistency:
+//    - All teal accents use --modal-accent-primary
+//    - All pink accents use --modal-accent-secondary
+//    - All yellow accents use --modal-accent-tertiary
+//
+// 5. Touch Targets:
+//    - All interactive elements MUST be ≥ 44px × 44px
+//    - Use $modal-touch-target-min as reference
+//
+// 6. Animation Performance:
+//    - Prefer CSS transitions over JavaScript animations
+//    - Use transform and opacity for GPU acceleration
+//    - Avoid animating width/height when possible
+//
+// 7. Accessibility:
+//    - Never remove focus rings (use --modal-focus-ring)
+//    - Test color contrast (all combinations exceed 7:1)
+//    - Ensure keyboard navigation works for all controls

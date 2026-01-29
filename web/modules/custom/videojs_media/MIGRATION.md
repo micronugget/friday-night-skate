@@ -1,5 +1,21 @@
 # Migration from videojs_mediablock to videojs_media
 
+## ⚠️ Migration Status Update
+
+**As of January 2026:**
+
+- ✅ **videojs_mediablock has been removed** from `composer.json`
+- ✅ **All code now uses videojs_media** exclusively
+- ✅ **Migration is complete** for this project
+
+**This migration guide is preserved for reference only.** If you're starting fresh or maintaining an installation that already uses `videojs_media`, you can safely ignore this document.
+
+If you're working on a different project that still uses `videojs_mediablock` and want to migrate to `videojs_media`, the information below provides detailed migration strategies.
+
+---
+
+## Overview
+
 This document outlines your options for migrating existing `videojs_mediablock` Block Content entities to the new `videojs_media` Content entities with bundles.
 
 ## Understanding the Data Transformation
