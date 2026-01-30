@@ -56,7 +56,8 @@ drush/*
 web/sites/default/services.yml
 web/sites/default/private/.htaccess
 web/sites/default/private/tmp/
-backup*
+build*
+mix-manifest.json
 web/modules/custom/videojs_media/node_modules
 
 # Ignore output directory
