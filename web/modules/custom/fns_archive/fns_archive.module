@@ -40,31 +40,31 @@ function fns_archive_node_presave(EntityInterface $node): void {
     try {
       /** @var \Drupal\media\MediaInterface $media */
       $media = $node->get('field_archive_media')->entity;
-      
+
       if ($media) {
         $metadata_extractor = \Drupal::service('skating_video_uploader.metadata_extractor');
         $metadata = NULL;
 
         // Determine media type and extract metadata accordingly.
         $media_bundle = $media->bundle();
-        
+
         // Get the source field configuration.
         $source_config = $media->getSource()->getConfiguration();
         if (!isset($source_config['source_field'])) {
           return;
         }
-        
+
         $source_field = $source_config['source_field'];
         if (!$media->hasField($source_field) || $media->get($source_field)->isEmpty()) {
           return;
         }
-        
+
         /** @var \Drupal\file\FileInterface $file */
         $file = $media->get($source_field)->entity;
         if (!$file) {
           return;
         }
-        
+
         // Extract metadata based on media type.
         if ($media_bundle === 'image') {
           $metadata = $metadata_extractor->extractImageMetadata($file);
