@@ -28,12 +28,13 @@ content:
       link: true
     third_party_settings: {  }
   field_skate_date:
-    type: entity_reference_label
+    type: datetime_default
     weight: 2
     region: content
     label: above
     settings:
-      link: true
+      timezone_override: ''
+      format_type: medium
     third_party_settings: {  }
   field_gps_coordinates:
     type: geofield_default

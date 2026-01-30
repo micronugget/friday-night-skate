@@ -105,7 +105,7 @@ ls .github/agents/
 cat .github/AGENT_DIRECTORY.md
 
 # View specific agent
-cat .github/agents/developer_drupal.md
+cat .github/agents/developer_drupal.agent.md
 
 # View agents README
 cat .github/agents/README.md
