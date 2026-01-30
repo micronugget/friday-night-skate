@@ -14,7 +14,7 @@ use Drupal\node\NodeInterface;
  * Implements hook_ENTITY_TYPE_presave() for node entities.
  *
  * Auto-populates the uploader field with the current user when creating a new
- * archive_media node.
+ * archive_media node and extracts metadata from uploaded media files.
  */
 function fns_archive_node_presave(EntityInterface $node): void {
   if (!$node instanceof NodeInterface) {
@@ -32,6 +32,55 @@ function fns_archive_node_presave(EntityInterface $node): void {
     if ($node->get('field_uploader')->isEmpty()) {
       $current_user = \Drupal::currentUser();
       $node->set('field_uploader', $current_user->id());
+    }
+  }
+
+  // Extract and store metadata from media files.
+  if ($node->hasField('field_archive_media') && !$node->get('field_archive_media')->isEmpty()) {
+    try {
+      /** @var \Drupal\media\MediaInterface $media */
+      $media = $node->get('field_archive_media')->entity;
+
+      if ($media) {
+        $metadata_extractor = \Drupal::service('skating_video_uploader.metadata_extractor');
+        $metadata = NULL;
+
+        // Determine media type and extract metadata accordingly.
+        $media_bundle = $media->bundle();
+
+        // Get the source field configuration.
+        $source_config = $media->getSource()->getConfiguration();
+        if (!isset($source_config['source_field'])) {
+          return;
+        }
+
+        $source_field = $source_config['source_field'];
+        if (!$media->hasField($source_field) || $media->get($source_field)->isEmpty()) {
+          return;
+        }
+
+        /** @var \Drupal\file\FileInterface $file */
+        $file = $media->get($source_field)->entity;
+        if (!$file) {
+          return;
+        }
+
+        // Extract metadata based on media type.
+        if ($media_bundle === 'image') {
+          $metadata = $metadata_extractor->extractImageMetadata($file);
+        }
+        elseif ($media_bundle === 'video') {
+          $metadata = $metadata_extractor->extractVideoMetadata($file);
+        }
+
+        // Store metadata if extraction was successful.
+        if ($metadata && !empty($metadata)) {
+          $metadata_extractor->storeMetadata($node, $metadata);
+        }
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('fns_archive')->error('Error extracting metadata: @error', ['@error' => $e->getMessage()]);
     }
   }
 

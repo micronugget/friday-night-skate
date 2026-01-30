@@ -1,0 +1,12 @@
+Cherry-pick Applied to PR #22
+==============================
+
+The conflict resolution fix (commit c08b964) has been successfully cherry-picked
+to the PR branch copilot/add-gps-metadata-extraction.
+
+Cherry-picked commit: 79956c1
+Original commit: c08b964
+
+Changes:
+- IMPLEMENTATION_SUMMARY.md now contains Bulk Upload documentation from main branch
+- This resolves the merge conflict in PR #22

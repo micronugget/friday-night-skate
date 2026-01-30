@@ -8,11 +8,13 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\file\FileInterface;
+use Drupal\node\NodeInterface;
 use Drupal\videojs_media\VideoJsMediaInterface;
 use Exception;
 
 /**
- * Service for extracting metadata from video files.
+ * Service for extracting metadata from video and image files.
  */
 class MetadataExtractor {
 
@@ -24,9 +26,9 @@ class MetadataExtractor {
   protected $entityTypeManager;
 
   /**
-   * The logger factory.
+   * The logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
   protected $loggerFactory;
 
@@ -109,7 +111,7 @@ class MetadataExtractor {
       $metadata['changed'] = time();
 
       // Store the metadata in the database.
-      $this->storeMetadata($metadata);
+      $this->storeMetadataToDatabase($metadata);
 
       return $metadata;
     }
@@ -133,7 +135,10 @@ class MetadataExtractor {
     $escaped_path = escapeshellarg($file_path);
 
     // Run ffprobe to get metadata in JSON format.
+    // Note: When Drupal runs in DDEV, PHP code already executes inside the container,
+    // so we don't need 'ddev exec' prefix. The command runs directly in the container.
     $command = "ffprobe -v quiet -print_format json -show_format -show_streams {$escaped_path} 2>&1";
+    
     $output = shell_exec($command);
 
     if (!$output) {
@@ -273,7 +278,7 @@ class MetadataExtractor {
    * @return int|null
    *   The ID of the stored metadata or NULL if storage failed.
    */
-  protected function storeMetadata(array $metadata) {
+  protected function storeMetadataToDatabase(array $metadata) {
     try {
       // Check if metadata already exists for this VideoJS Media entity.
       $existing = $this->database->select('skating_video_metadata', 'm')
@@ -301,6 +306,247 @@ class MetadataExtractor {
     catch (Exception $e) {
       $this->loggerFactory->error('Error storing metadata: @error', ['@error' => $e->getMessage()]);
       return NULL;
+    }
+  }
+
+  /**
+   * Extracts metadata from an image file using EXIF data.
+   *
+   * @param \Drupal\file\FileInterface $file
+   *   The file entity containing the image.
+   *
+   * @return array|null
+   *   An array of metadata or NULL if extraction failed.
+   */
+  public function extractImageMetadata(FileInterface $file): ?array {
+    try {
+      // Check if EXIF extension is available.
+      if (!function_exists('exif_read_data')) {
+        $this->loggerFactory->warning('EXIF extension not available for metadata extraction');
+        return NULL;
+      }
+
+      // Get the file URI and convert it to a local path.
+      $uri = $file->getFileUri();
+      $local_path = $this->fileSystem->realpath($uri);
+
+      if (!$local_path || !file_exists($local_path)) {
+        $this->loggerFactory->error('Image file not found at @uri', ['@uri' => $uri]);
+        return NULL;
+      }
+
+      // Read EXIF data from the image.
+      $exif_data = @exif_read_data($local_path, NULL, TRUE);
+      if ($exif_data === FALSE) {
+        $this->loggerFactory->warning('Failed to read EXIF data from @uri', ['@uri' => $uri]);
+        return NULL;
+      }
+
+      $metadata = [];
+
+      // Extract GPS coordinates.
+      if (isset($exif_data['GPS'])) {
+        $gps = $this->extractGpsFromExif($exif_data['GPS']);
+        if ($gps) {
+          $metadata = array_merge($metadata, $gps);
+        }
+      }
+
+      // Extract timestamp.
+      if (isset($exif_data['EXIF']['DateTimeOriginal'])) {
+        $metadata['timestamp'] = $exif_data['EXIF']['DateTimeOriginal'];
+      }
+      elseif (isset($exif_data['IFD0']['DateTime'])) {
+        $metadata['timestamp'] = $exif_data['IFD0']['DateTime'];
+      }
+
+      // Extract camera information.
+      if (isset($exif_data['IFD0']['Make'])) {
+        $metadata['camera_make'] = $exif_data['IFD0']['Make'];
+      }
+      if (isset($exif_data['IFD0']['Model'])) {
+        $metadata['camera_model'] = $exif_data['IFD0']['Model'];
+      }
+
+      // Extract technical details.
+      if (isset($exif_data['EXIF']['ISOSpeedRatings'])) {
+        $metadata['iso'] = $exif_data['EXIF']['ISOSpeedRatings'];
+      }
+      if (isset($exif_data['EXIF']['FNumber'])) {
+        $metadata['aperture'] = $this->convertExifRational($exif_data['EXIF']['FNumber']);
+      }
+      if (isset($exif_data['EXIF']['FocalLength'])) {
+        $metadata['focal_length'] = $this->convertExifRational($exif_data['EXIF']['FocalLength']);
+      }
+      if (isset($exif_data['EXIF']['ExposureTime'])) {
+        $metadata['exposure_time'] = $exif_data['EXIF']['ExposureTime'];
+      }
+
+      return $metadata;
+    }
+    catch (Exception $e) {
+      $this->loggerFactory->error('Error extracting image metadata: @error', ['@error' => $e->getMessage()]);
+      return NULL;
+    }
+  }
+
+  /**
+   * Extracts GPS coordinates from EXIF GPS data.
+   *
+   * @param array $gps_data
+   *   The GPS section of EXIF data.
+   *
+   * @return array
+   *   An array with latitude, longitude, and optionally altitude.
+   */
+  protected function extractGpsFromExif(array $gps_data): array {
+    $result = [];
+
+    // Extract latitude.
+    if (isset($gps_data['GPSLatitude'], $gps_data['GPSLatitudeRef'])) {
+      $lat = $this->convertGpsCoordinate($gps_data['GPSLatitude']);
+      if ($gps_data['GPSLatitudeRef'] === 'S') {
+        $lat = -$lat;
+      }
+      $result['latitude'] = $lat;
+    }
+
+    // Extract longitude.
+    if (isset($gps_data['GPSLongitude'], $gps_data['GPSLongitudeRef'])) {
+      $lon = $this->convertGpsCoordinate($gps_data['GPSLongitude']);
+      if ($gps_data['GPSLongitudeRef'] === 'W') {
+        $lon = -$lon;
+      }
+      $result['longitude'] = $lon;
+    }
+
+    // Extract altitude.
+    if (isset($gps_data['GPSAltitude'])) {
+      $altitude = $this->convertExifRational($gps_data['GPSAltitude']);
+      if (isset($gps_data['GPSAltitudeRef']) && $gps_data['GPSAltitudeRef'] === '1') {
+        $altitude = -$altitude;
+      }
+      $result['altitude'] = $altitude;
+    }
+
+    return $result;
+  }
+
+  /**
+   * Converts GPS coordinate from EXIF format to decimal degrees.
+   *
+   * @param array $coordinate
+   *   Array of three rational numbers [degrees, minutes, seconds].
+   *
+   * @return float
+   *   The coordinate in decimal degrees.
+   */
+  protected function convertGpsCoordinate(array $coordinate): float {
+    // Validate array has required elements.
+    if (count($coordinate) < 3) {
+      return 0.0;
+    }
+
+    $degrees = $this->convertExifRational($coordinate[0]);
+    $minutes = $this->convertExifRational($coordinate[1]);
+    $seconds = $this->convertExifRational($coordinate[2]);
+
+    return $degrees + ($minutes / 60) + ($seconds / 3600);
+  }
+
+  /**
+   * Converts EXIF rational number to float.
+   *
+   * @param string|float|int $rational
+   *   The rational number in "numerator/denominator" format or a numeric value.
+   *
+   * @return float
+   *   The decimal value.
+   */
+  protected function convertExifRational($rational): float {
+    if (is_float($rational) || is_int($rational)) {
+      return (float) $rational;
+    }
+
+    if (is_string($rational)) {
+      // Check if it's a rational number (e.g., "1/60").
+      if (str_contains($rational, '/')) {
+        $parts = explode('/', $rational);
+        if (count($parts) === 2 && $parts[1] !== '0') {
+          return (float) $parts[0] / (float) $parts[1];
+        }
+      }
+      // It's a plain string number.
+      else {
+        return (float) $rational;
+      }
+    }
+
+    return 0.0;
+  }
+
+  /**
+   * Extracts metadata from a video file using File entity.
+   *
+   * @param \Drupal\file\FileInterface $file
+   *   The file entity containing the video.
+   *
+   * @return array|null
+   *   An array of metadata or NULL if extraction failed.
+   */
+  public function extractVideoMetadata(FileInterface $file): ?array {
+    try {
+      // Get the file URI and convert it to a local path.
+      $uri = $file->getFileUri();
+      $local_path = $this->fileSystem->realpath($uri);
+
+      if (!$local_path || !file_exists($local_path)) {
+        $this->loggerFactory->error('Video file not found at @uri', ['@uri' => $uri]);
+        return NULL;
+      }
+
+      // Use the existing extractWithFFProbe method.
+      return $this->extractWithFFProbe($local_path);
+    }
+    catch (Exception $e) {
+      $this->loggerFactory->error('Error extracting video metadata: @error', ['@error' => $e->getMessage()]);
+      return NULL;
+    }
+  }
+
+  /**
+   * Stores metadata to a node's field_metadata as JSON.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The node entity (typically archive_media).
+   * @param array $metadata
+   *   The metadata array to store.
+   *
+   * @return bool
+   *   TRUE if metadata was stored successfully, FALSE otherwise.
+   */
+  public function storeMetadata(NodeInterface $node, array $metadata): bool {
+    try {
+      if (!$node->hasField('field_metadata')) {
+        $this->loggerFactory->warning('Node @id does not have field_metadata field', ['@id' => $node->id()]);
+        return FALSE;
+      }
+
+      // Convert metadata to JSON.
+      $json = json_encode($metadata, JSON_PRETTY_PRINT);
+      if ($json === FALSE) {
+        $this->loggerFactory->error('Failed to encode metadata as JSON');
+        return FALSE;
+      }
+
+      // Store in the field.
+      $node->set('field_metadata', $json);
+
+      return TRUE;
+    }
+    catch (Exception $e) {
+      $this->loggerFactory->error('Error storing metadata to node: @error', ['@error' => $e->getMessage()]);
+      return FALSE;
     }
   }
 
